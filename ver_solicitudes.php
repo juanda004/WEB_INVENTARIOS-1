@@ -64,11 +64,11 @@ try {
                         <td><?php echo htmlspecialchars($s['email']); ?></td>
                         <td><?php echo htmlspecialchars($s['area_solicitante']); ?></td>
                         <td>
-                            <ul class="list-unstyled">
+                            <ul class="list">
                                 <?php
                                 $productos_solicitados = json_decode($s['productos_solicitados'], true);
                                 foreach ($productos_solicitados as $p) {
-                                    echo "<li>" . htmlspecialchars($p['nombre']) . " (" . htmlspecialchars($p['codigo']) . ") - Cantidad: " . htmlspecialchars($p['cantidad']) . "</li>";
+                                    echo "<li> " . htmlspecialchars($p['nombre']) . " (" . htmlspecialchars($p['codigo']) . ") - Cantidad: " . htmlspecialchars($p['cantidad']) . "</li>";
                                 }
                                 ?>
                             </ul>
@@ -76,12 +76,19 @@ try {
                         <td><?php echo htmlspecialchars($s['fecha_solicitud']); ?></td>
                         <td>
                             <span class="badge badge-pill badge-<?php
-                                switch ($s['estado']) {
-                                    case 'pendiente': echo 'warning'; break;
-                                    case 'entregado': echo 'success'; break;
-                                    case 'cancelado': echo 'danger'; break;
-                                    default: echo 'info';
-                                }
+                            switch ($s['estado']) {
+                                case 'pendiente':
+                                    echo 'warning';
+                                    break;
+                                case 'entregado':
+                                    echo 'success';
+                                    break;
+                                case 'cancelado':
+                                    echo 'danger';
+                                    break;
+                                default:
+                                    echo 'info';
+                            }
                             ?>">
                                 <?php echo ucfirst(htmlspecialchars($s['estado'])); ?>
                             </span>
@@ -90,9 +97,12 @@ try {
                             <form action="ver_solicitudes.php" method="POST" class="d-inline">
                                 <input type="hidden" name="solicitud_id" value="<?php echo htmlspecialchars($s['id']); ?>">
                                 <select name="nuevo_estado" class="form-control form-control-sm d-inline w-auto">
-                                    <option value="pendiente" <?php echo ($s['estado'] == 'pendiente') ? 'selected' : ''; ?>>PENDIENTE</option>
-                                    <option value="entregado" <?php echo ($s['estado'] == 'entregado') ? 'selected' : ''; ?>>ENTREGADO</option>
-                                    <option value="cancelado" <?php echo ($s['estado'] == 'cancelado') ? 'selected' : ''; ?>>CANCELADO</option>
+                                    <option value="pendiente" <?php echo ($s['estado'] == 'pendiente') ? 'selected' : ''; ?>>
+                                        PENDIENTE</option>
+                                    <option value="entregado" <?php echo ($s['estado'] == 'entregado') ? 'selected' : ''; ?>>
+                                        ENTREGADO</option>
+                                    <option value="cancelado" <?php echo ($s['estado'] == 'cancelado') ? 'selected' : ''; ?>>
+                                        CANCELADO</option>
                                 </select>
                                 <button type="submit" name="accion_solicitud" class="btn btn-primary btn-sm mt-1">
                                     Actualizar

@@ -2,7 +2,6 @@
 // reportes.php
 // Genera un reporte de entrada y salida de productos en formato PDF.
 
-require_once 'includes/fpdf.php';
 require_once 'includes/db.php';
 require_once 'includes/header.php';
 

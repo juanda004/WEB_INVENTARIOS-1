@@ -12,6 +12,8 @@ $termino_busqueda = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buscar_producto'])) {
     $termino_busqueda = trim($_POST['termino_busqueda']);
 
+    $termino_lik = '%' . $termino_busqueda . '%';
+
     if (empty($termino_busqueda)) {
         $mensaje = "<p class='btn-danger'>Por favor, ingrese un código de producto.</p>";
     } else {
@@ -26,6 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buscar_producto'])) {
 
         // Recorrer cada categoría y buscar el producto
         foreach ($categorias_para_buscar as $cat) {
+            //Aegurarse de que el nombre de la tabla sea seguro
+            if (!preg_match('/^[a-z0-9_]+$/i', $cat)) {
+                continue; // Saltar tablas con nombres no seguros
+            }
+
             try {
                 // Prepara la consulta para evitar inyección SQL
                 // La búsqueda ahora solo se realiza por el campo CODIGO,
@@ -73,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buscar_producto'])) {
 
     <?php if (!empty($resultados)): ?>
         <h3>Resultados de la Búsqueda</h3>
-        <table>
+        <table class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th>CATEGORÍA</th>
