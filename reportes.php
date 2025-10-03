@@ -113,9 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generar_reporte'])) {
         <div class="form-group">
             <label for="categoria">Seleccionar Categoría:</label>
             <select class="form-control" id="categoria" name="categoria" required>
-                <option value="">-- Seleccione una --</option>
+                <option value="">Seleccione una Categoria</option>
                 <?php foreach ($categorias as $cat): ?>
-                    <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                    <option value="<?php echo htmlspecialchars(ucfirst($cat)); ?>"><?php echo htmlspecialchars($cat); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

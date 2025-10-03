@@ -46,7 +46,7 @@ try {
 
     <?php if (!empty($solicitudes)): ?>
         <table class="table table-bordered table-striped">
-            <thead>
+            <thead class="table-dark">
                 <tr>
                     <th>N° Orden</th>
                     <th>Usuario</th>

@@ -34,13 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $categoria_seleccionada) {
     $cant = $_POST['CANT'];
     $unidad = $_POST['UNIDAD'];
 
-    if (!empty($codigo) && !empty($producto) && !empty($cant) && !empty($unidad)) {
+    $codigo_barras = '*' . $codigo . '*';
+
+    if (!empty($codigo) && !empty($codigo_barras) && !empty($producto) && !empty($cant) && !empty($unidad)) {
         // La consulta SQL ahora usa la variable $categoria_seleccionada
         try {
-            $sql = "INSERT INTO `$categoria_seleccionada` (CODIGO, PRODUCTO, CANT, UNIDAD) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO `$categoria_seleccionada` (CODIGO, CODIGO_BARRAS, PRODUCTO, CANT, UNIDAD) VALUES (?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
 
-            if ($stmt->execute([$codigo, $producto, $cant, $unidad])) {
+            if ($stmt->execute([$codigo, $codigo_barras, $producto, $cant, $unidad])) {
                 $mensaje = "<p class='btn-success'>✅ Producto agregado a la categoría '" . htmlspecialchars($categoria_seleccionada) . "' correctamente.</p>";
             } else {
                 $mensaje = "<p class='btn-danger'>❌ Error al agregar el producto.</p>";
@@ -77,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $categoria_seleccionada) {
         </div>
         <button type="submit" class="btn btn-primary">Agregar Producto</button>
         <a href="categorias.php" class="btn btn-success">Volver a Categorías</a>
+        <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($categoria_seleccionada); ?>" method="POST" class="btn btn-dark">Ver Categoría</a>
     </form>
 <?php else: ?>
     <p>Por favor, seleccione una categoría desde la página <a href="categorias.php">Gestor de Categorías</a>.</p>

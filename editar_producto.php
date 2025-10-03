@@ -41,10 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_producto'])) {
     $codigo_antiguo = trim($_POST['codigo_antiguo']);
     $categoria_actual = trim($_POST['categoria_actual']);
     $nuevo_codigo = trim($_POST['nuevo_codigo']);
-    $codigo_barras = trim($_POST['codigo_barras']);
     $descripcion = trim($_POST['descripcion']);
     $cantidad = (int)$_POST['cantidad'];
     $unidad = trim($_POST['unidad']);
+
+    $codigo_barras = '*' . $nuevo_codigo . '*';
 
     if (empty($nuevo_codigo) || empty($descripcion) || empty($cantidad)) {
         $mensaje = "<p class='btn-danger'>Todos los campos son obligatorios.</p>";
@@ -74,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_producto'])) {
 </head>
 <body>
     <h2>Editar Producto</h2>
-    <p><a href="ver_productos.php?categoria=<?php echo urlencode($categoria); ?>">Regresar a Productos</a></p>
+    <p><a class="btn btn-dark" href="ver_productos.php?categoria=<?php echo urlencode($categoria); ?>">Regresar a Productos</a></p>
     
     <?php echo $mensaje; ?>
 
@@ -85,10 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_producto'])) {
 
             <label for="nuevo_codigo">Código del Producto:</label>
             <input type="text" id="nuevo_codigo" name="nuevo_codigo" value="<?php echo htmlspecialchars($producto['CODIGO']); ?>" required>
-            <br><br>
-
-            <label for="codigo_barras">Código de Barras:</label>
-            <input type="text" id="codigo_barras" name="codigo_barras" value="<?php echo htmlspecialchars($producto['CODIGO_BARRAS']); ?>">
             <br><br>
 
             <label for="descripcion">Descripción del Producto:</label>
@@ -109,8 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_producto'])) {
                 <?php endforeach; ?>
             </select>
             <br><br>
-
-            <button type="submit" name="editar_producto">Actualizar Producto</button>
+            <button type="submit" name="editar_producto" class="btn btn-success">Actualizar Producto</button>
         </form>
     <?php endif; ?>
 

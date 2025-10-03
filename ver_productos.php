@@ -72,29 +72,37 @@ try {
         <table class="table table-bordered table-striped">
             <thead class="thead-dark">
                 <tr>
-                    <th>CODIGO</th>
-                    <th>CODIGO DE BARRAS</th>
-                    <th>DESCRIPCION</th>
-                    <th>CANTIDAD</th>
+                    <th style="text-align: center; vertical-align: middle;">CODIGO</th>
+                    <th style="text-align: center; vertical-align: middle;">CODIGO DE BARRAS</th>
+                    <th style="text-align: center; vertical-align: middle;">DESCRIPCION</th>
+                    <th style="text-align: center; vertical-align: middle;">CANTIDAD</th>
                     <?php if ($user_role === 'admin'): ?>
-                            <th>ACCIONES</th>
-                        <?php endif; ?>
-                    </tr>
+                        <th style="text-align: center; vertical-align: middle;">ACCIONES</th>
+                    <?php endif; ?>
+                </tr>
             </thead>
             <tbody>
                 <?php foreach ($productos as $producto): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($producto['CODIGO']); ?></td>
-                        <td><?php echo htmlspecialchars($producto['CODIGO_BARRAS']); ?></td>
-                        <td><?php echo htmlspecialchars($producto['PRODUCTO']); ?></td>
-                        <td><?php echo htmlspecialchars($producto['CANT']); ?></td>
-                        <td>
-                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                                <a href="editar_producto.php?categoria=<?php echo htmlspecialchars($categoria_seleccionada); ?>&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>"
-                                    class="btn btn-warning">Editar</a>
-                                <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($categoria_seleccionada); ?>&action=eliminar&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>"
-                                    class="btn btn-danger"
-                                    onclick="return confirm ('¿Está seguro de que desea eliminar el producto?');">Eliminar</a>
+                        <td style="text-align: center; vertical-align: middle;">
+                            <?php echo htmlspecialchars($producto['CODIGO']); ?>
+                        </td>
+                        <td style="text-align: center; vertical-align: middle;">
+                            <?php echo htmlspecialchars($producto['CODIGO_BARRAS']); ?>
+                        </td>
+                        <td style="vertical-align: middle;"><?php echo htmlspecialchars($producto['PRODUCTO']); ?></td>
+                        <td style="text-align: center; vertical-align: middle;">
+                            <?php echo htmlspecialchars($producto['CANT']); ?>
+                        </td>
+                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                            <td>
+                                <div style="display: flex; flex-direction: column;"   >
+                                    <a href="editar_producto.php?categoria=<?php echo htmlspecialchars($categoria_seleccionada); ?>&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>"
+                                        class="btn btn-warning">Editar</a>
+                                    <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($categoria_seleccionada); ?>&action=eliminar&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>"
+                                        class="btn btn-danger"
+                                        onclick="return confirm ('¿Está seguro de que desea eliminar el producto?');">Eliminar</a>
+                                </div>
                             <?php endif; ?>
                         </td>
                     </tr>

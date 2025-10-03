@@ -115,11 +115,13 @@ try {
         <?php foreach ($categorias as $cat): ?>
             <li>
                 <?php echo htmlspecialchars(ucfirst($cat)); ?>
-                <a class="btn btn-dark" href="ver_productos.php?categoria=<?php echo urlencode($cat); ?>">Ver Productos</a>
+                <a class="btn btn-dark" style="margin-top: 10px" href="ver_productos.php?categoria=<?php echo urlencode($cat); ?>">Ver Productos</a>
                 <?php if ($user_role === 'admin'): ?>
                     <!-- Opciones de gestión - Visible solo para admin -->
-                    <a class="btn btn-success" href="agregar_producto.php?categoria=<?php echo urlencode($cat); ?>">Agregar Producto</a>
-                    <form action="categorias.php" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar la categoría <?php echo htmlspecialchars($cat); ?>? Esta acción no se puede deshacer.');">
+                    <a class="btn btn-success" href="agregar_producto.php?categoria=<?php echo urlencode($cat); ?>">Agregar
+                        Producto</a>
+                    <form action="categorias.php" method="POST" style="display:inline;"
+                        onsubmit="return confirm('¿Eliminar la categoría <?php echo htmlspecialchars($cat); ?>? Esta acción no se puede deshacer.');">
                         <input type="hidden" name="eliminar_categoria_nombre" value="<?php echo htmlspecialchars($cat); ?>">
                         <button class="btn btn-danger" type="submit" name="eliminar_categoria">Eliminar</button>
                     </form>
