@@ -98,7 +98,6 @@ $pdf->SetFillColor(230, 230, 230);
 $pdf->Cell(15, 7, 'ITEM', 1, 0, 'C', true); // Columna ITEM
 $pdf->Cell(115, 7, utf8_decode('DESCRIPCIÓN'), 1, 0, 'C', true); // Columna DESCRIPCION
 $pdf->Cell(30, 7, 'CANTIDAD', 1, 0, 'C', true); // Columna CANTIDAD
-$pdf->Cell(40, 7, 'OBSERVACIONES', 1, 1, 'C', true);
 
 // 5. LISTAR LOS PRODUCTOS SOLICITADOS (Máximo 15 filas)
 $pdf->SetFont('Arial', '', 8);

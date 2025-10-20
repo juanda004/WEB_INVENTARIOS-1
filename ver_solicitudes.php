@@ -107,7 +107,7 @@ try {
                                 <button type="submit" name="accion_solicitud" class="btn btn-primary btn-sm mt-1">
                                     Actualizar
                                 </button>
-                                <a href="descargar_solicitudes_pdf.php?id=<?php echo htmlspecialchars($s['id']); ?>" target="_blank" class="btn btn-secondary btn-sm">
+                                <a href="descargar_solicitudes_pdf.php?id=<?php echo htmlspecialchars($s['id']); ?>" class="btn btn-secondary btn-sm">
                                     Descargar PDF
                                 </a>
                             </form>
