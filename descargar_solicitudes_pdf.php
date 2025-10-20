@@ -51,136 +51,42 @@ class PDF extends FPDF {
     //El formato de la plantilla es manual, no necesitamos Header ni Footer estándar
 }
 
-//Configuración Inicial del PDf
-$pdf = new PDF();
+//COFIGURACION CRITICA PARA EL FORMATO HORIZONTAL
+//Se pasa 'L' (Landscape) al constructor de FPDF
+$pdf = new PDF('L','mm','A4');
 $pdf->SetMargins(10,10,10);
 $pdf->AddPage();
 $pdf->SetAutoPageBreak(true, 15);
 
-//Diseño del PDF Y Carga Datos
+//Constantes de diseño para el nuevo formato horizontal
+$ancho_util = 277; //Ancho util en mm para A4 horizontal con margenes de 10mm
+$margin_x = 10;
+$pdf->SetX($margin_x);
 
-// -- CABECERA SUPERIOR (Logo Y Nombre de la Empresa)
+// ===========================================
+// == CABERCERA SUPERIOR (LOGO Y TITULO) ==
+// ===========================================
 $y_start = 10;
 $pdf->SetY($y_start);
 
-// Celda Logo (30mm ancho)
-$pdf->Rect(10, $y_start, 30, 15); 
-$pdf->Cell(30, 15, '', 1, 0, 'C'); // Espacio para logo NCS
+//DIMENSIONES AJUSTADS PARA LANDSCAPE
+$w_logo = 30;
+$w_nombre_empresa = $ancho_util - $w_logo;
 
-// Celda Nombre Empresa (170mm ancho)
+//Celda Logo (30mm ancho)
+$pdf->React($margin_x, $y_start, $w_logo, 15);
+$pdf->Cell($w_logo,15,'',1,0,'C');
+
+//Celda Nombre Empresa (247mm ancho)
 $pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(170, 7.5, 'SEMILLEROS PARA EL FUTURO S.A.S', 1, 1, 'C');
-$pdf->SetX(40); // Mover X después de la celda del logo
+$pdf->Cell($w_nombre_empresa, 7.5, 'SEMILLEROS PARA EL FUTURO S.A.S', 1, 1, 'C');
+$pdf->SetX($margin_x + $w_logo);
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->Cell(170, 7.5, utf8_decode('SOLICITUD DE SUMINISTROS'), 1, 1, 'C');
+$pdf->Cell($w_nombre_empresa, 7.5, utf8_decode('SOLICITUD DE SUMINISTROS'),1,1, 'C');
 
-// -- INFO SUPERIOR (Fecha, Área, Solicitante)
-$pdf->SetY($y_start + 15); 
-$pdf->SetFont('Arial', 'B', 8);
+// --------------------------------------------------------
+// -- INFO SUPERIOR (Fecha, Área, Solicitante) AJUSTADO --
+// --------------------------------------------------------
+$pdf-> SetY();
 
-$pdf->Cell(20, 5, 'FECHA:', 'TL', 0, 'L');
-$pdf->SetFont('Arial', '', 8);
-$pdf->Cell(30, 5, $fecha_solicitud, 'TR', 0, 'L'); // CARGA SOLO FECHA
-
-$pdf->SetFont('Arial', 'B', 8);
-$pdf->Cell(20, 5, utf8_decode('ÁREA:'), 'TL', 0, 'L');
-$pdf->SetFont('Arial', '', 8);
-$pdf->Cell(60, 5, $area_solicitante, 'TR', 0, 'L'); // CARGA ÁREA
-
-$pdf->SetFont('Arial', 'B', 8);
-$pdf->Cell(20, 5, 'SOLICITANTE:', 'TL', 0, 'L');
-$pdf->SetFont('Arial', '', 8);
-$pdf->Cell(50, 5, $email_solicitante, 'TR', 1, 'L'); // CARGA USUARIO
-
-// -- CABECERA DE LA TABLA DE ITEMS
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->SetFillColor(230, 230, 230);
-$pdf->Cell(15, 7, 'ITEM', 1, 0, 'C', true); // Columna ITEM
-$pdf->Cell(115, 7, utf8_decode('DESCRIPCIÓN'), 1, 0, 'C', true); // Columna DESCRIPCION
-$pdf->Cell(30, 7, 'CANTIDAD', 1, 0, 'C', true); // Columna CANTIDAD
-
-// 5. LISTAR LOS PRODUCTOS SOLICITADOS (Máximo 15 filas)
-$pdf->SetFont('Arial', '', 8);
-$altura_fila = 5; 
-$max_filas = 15;
-$item_num = 1;
-
-for ($i = 0; $i < $max_filas; $i++) {
-    
-    $producto = $productos_a_listar[$i] ?? null;
-
-    // Columna ITEM (Número de ítem)
-    $pdf->Cell(15, $altura_fila, $producto ? $item_num : '', 1, 0, 'C');
-
-    // Columna DESCRIPCION (Nombre + Codigo)
-    $descripcion_texto = '';
-    if ($producto) {
-        // Mapea la DESCRIPCION con Nombre y Código
-        $descripcion_texto = utf8_decode(htmlspecialchars($producto['nombre']) . " (" . htmlspecialchars($producto['codigo']) . ")");
-    }
-    $pdf->Cell(115, $altura_fila, $descripcion_texto, 1, 0, 'L');
-
-    // Columna CANTIDAD
-    $cantidad_texto = $producto ? htmlspecialchars($producto['cantidad']) : ''; // Mapea la CANTIDAD
-    $pdf->Cell(30, $altura_fila, $cantidad_texto, 1, 0, 'C');
-
-    // Columna OBSERVACIONES (vacía en el reporte)
-    $pdf->Cell(40, $altura_fila, '', 1, 1, 'L'); 
-    
-    if ($producto) {
-        $item_num++;
-    }
-}
-
-
-// -- SECCIÓN DE OBSERVACIONES GENERALES
-$pdf->Ln(2); 
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(0, 5, 'OBSERVACIONES:', 'TLR', 1, 'L', true);
-$pdf->SetFont('Arial', '', 8);
-// Espacio para observaciones (15mm de altura)
-$pdf->Cell(0, 15, '', 'BLR', 1, 'L'); 
-
-
-// -- SECCIÓN DE FIRMAS Y DATOS FINALES
-$pdf->Ln(2);
-
-// Fila de Encabezados
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(66.6, 5, 'Elaborado por:', 1, 0, 'C', true);
-$pdf->Cell(66.6, 5, 'ENTREGA:', 1, 0, 'C', true);
-$pdf->Cell(66.8, 5, 'RECIBE:', 1, 1, 'C', true);
-
-// Fila NOMBRE:
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(15, 5, 'NOMBRE:', 'L', 0, 'L');
-$pdf->SetFont('Arial', '', 9);
-$pdf->Cell(51.6, 5, utf8_decode('Elaborado por (Admin)'), 'R', 0, 'L'); 
-
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(15, 5, 'NOMBRE:', 'L', 0, 'L');
-$pdf->Cell(51.6, 5, '', 'R', 0, 'L'); 
-
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(15, 5, 'NOMBRE:', 'L', 0, 'L');
-$pdf->Cell(51.8, 5, '', 'R', 1, 'L'); 
-
-// Fila CARGO / FECHA DE ENTREGA / FIRMA
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(15, 5, 'CARGO:', 'LB', 0, 'L');
-$pdf->SetFont('Arial', '', 9);
-$pdf->Cell(51.6, 5, utf8_decode('Jefe de Mantenimiento'), 'RB', 0, 'L'); // Cargo fijo
-
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(25, 5, 'FECHA DE ENTREGA:', 'LB', 0, 'L');
-$pdf->Cell(41.6, 5, '', 'RB', 0, 'L'); // Espacio para la fecha de entrega
-
-$pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(15, 5, 'FIRMA:', 'LB', 0, 'L');
-$pdf->Cell(51.8, 5, '', 'RB', 1, 'L'); // Espacio para firma
-
-
-// SALIDA DEL PDF
-$pdf->Output('D', 'Solicitud_Suministros_' . $solicitud_id . '_' . date('Ymd') . '.pdf');
-exit;
 ?>
