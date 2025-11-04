@@ -69,19 +69,26 @@ $pdf->SetX($margin_x);
 $y_start = 10;
 $pdf->SetY($y_start);
 
+$logo_url = 'https://i.ibb.co/5fT8GF9/LOGO-NCS.jpg';
+
 //DIMENSIONES AJUSTADS PARA LANDSCAPE
-$w_logo = 30;
+$w_logo = 17;
+$h_logo_max = 15; //Altura máxima permitida
 $w_nombre_empresa = $ancho_util - $w_logo;
 
 //Celda Logo (30mm ancho)
-$pdf->Rect($margin_x, $y_start, $w_logo, 15);
-$pdf->Cell($w_logo,15,'',1,0,'C');
+$pdf->Rect($margin_x, $y_start, $w_logo, $h_logo_max);
+
+$pdf->Image($logo_url, $margin_x + 0.5, $y_start + 1, $w_logo - 1, 13);
+
+//Celda vacía para mover el cursor X (usa la altura 'h' = 15)
+$pdf->Cell($w_logo,15,'',0,0,'C');
 
 //Celda Nombre Empresa (247mm ancho)
 $pdf->SetFont('Arial', 'B', 12);
 $pdf->Cell($w_nombre_empresa, 7.5, 'SEMILLEROS PARA EL FUTURO S.A.S', 1, 1, 'C');
 $pdf->SetX($margin_x + $w_logo);
-$pdf->SetFont('Arial', 'B', 10);
+$pdf->SetFont('Arial', 'B', 10);    
 $pdf->Cell($w_nombre_empresa, 7.5, utf8_decode('SOLICITUD DE SUMINISTROS'),1,1, 'C');
 
 // --------------------------------------------------------
@@ -102,14 +109,14 @@ $pdf->SetFont('Arial', '', 8);
 $pdf->Cell($w_value_fecha, 5,$fecha_solicitud, 'TR', 0, 'L');
 
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->Cell($w_label, 5, 'AREA:', 'TL', 0,'L');
+$pdf->Cell($w_label, 5, utf8_decode('AREA:'), 'TL', 0,'L');
 $pdf->SetFont('Arial', '', 8);
 $pdf->Cell($w_value_area, 5, $area_solicitante, 'TR', 0, 'L');
 
 $pdf->SetFont('Arial', 'B', 8);
 $pdf->Cell($w_label, 5, 'SOLICITANTE:', 'TL', 0,'L');
 $pdf->SetFont('Arial', '', 8);
-$pdf->Cell($w_value_solicitante, 5, $email_solicitante, 'TR', 0, 'L');
+$pdf->Cell($w_value_solicitante, 5, $email_solicitante, 'TR', 1, 'L');
 
 // ---------------------------------------------
 // -- CABECERA DE LA TABLA DE ITEMS AJUSTADA --

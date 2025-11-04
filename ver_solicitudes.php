@@ -11,7 +11,7 @@ $user_role = $_SESSION['user_role'] ?? 'admin';
 
 // Redirigir si el usuario no es administrador
 if ($user_role !== 'admin') {
-    header("Location: index.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -21,7 +21,6 @@ $solicitudes = [];
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion_solicitud'])) {
     $solicitud_id = $_POST['solicitud_id'];
     $nuevo_estado = $_POST['nuevo_estado'];
-
     try {
         $stmt = $pdo->prepare("UPDATE solicitudes SET estado = ? WHERE id = ?");
         $stmt->execute([$nuevo_estado, $solicitud_id]);
