@@ -73,7 +73,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
                 //Opciones para todos los usuarios
                 echo '<li class="nav-item"><a class="nav-link" href="categorias.php">Categorías</a></li>';
-                echo '<li class="nav-item"><a class="nav-link" href="buscar_producto.php">Buscar</a></li>';
                 
                 if (isset($_SESSION['role']) && $_SESSION['role']=== 'user'){
                     echo '<li class="nav-item"><a class="nav-link" href="solicitudes.php">Solicitudes</a></li>';
