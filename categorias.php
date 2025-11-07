@@ -132,6 +132,7 @@ try {
                         </form>
                     <?php else: ?>
                         <a class="btn btn-info btn-sm" href="gestor_subcategorias.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Ver Subcategorías</a>
+                        <a class="btn btn-dark btn-sm" href="ver_productos.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Ver Productos</a>
                     <?php endif; ?>
                 </div>
             </li>
