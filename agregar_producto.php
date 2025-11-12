@@ -1,7 +1,6 @@
 <?php
 // agregar_producto.php
 // Este script agrega un nuevo producto a la tabla (Categoría o Subcategoría) seleccionada por URL.
-
 session_start();
 //Control de acceso: solo para administradores
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -15,6 +14,27 @@ include 'includes/header.php';
 $mensaje = '';
 // El nombre de la tabla (Categoría o Subcategoría) se recibe por URL
 $tabla_seleccionada = isset($_GET['categoria']) ? $_GET['categoria'] : null;
+$user_id = $_SESSION['user_id'] ?? 0; // Se asume que el ID del usuario está aquí
+
+// --- Función Auxiliar necesaria para el Kárdex ---
+function registrarMovimiento(PDO $pdo, $codigo, $nombre, $categoria, $cantidad, $tipo, $ref_id, $user_id, $comentarios = '') {
+    $stmt = $pdo->prepare("
+        INSERT INTO inventario_movimientos
+        (fecha_movimiento, codigo_producto, nombre_producto, categoria, cantidad_afectada, tipo_movimiento, referencia_id, usuario_id, comentarios)
+        VALUES (NOW(), :codigo, :nombre, :categoria, :cantidad, :tipo, :ref_id, :user_id, :comentarios)
+    ");
+    $stmt->execute([
+        ':codigo' => $codigo,
+        ':nombre' => $nombre,
+        ':categoria' => $categoria,
+        ':cantidad' => $cantidad,
+        ':tipo' => $tipo,
+        ':ref_id' => $ref_id,
+        ':user_id' => $user_id,
+        ':comentarios' => $comentarios
+    ]);
+}
+// --------------------------------------------------
 
 // Bloque GET: Validar el nombre de la tabla
 if (empty($tabla_seleccionada)) {
@@ -30,84 +50,109 @@ if (empty($tabla_seleccionada)) {
 
 // Bloque POST: Procesar el formulario e insertar en la tabla dinámica
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && $tabla_seleccionada) {
-    // Recolectar y sanitizar datos del formulario
+    // Recolectar datos del formulario
     $codigo = trim($_POST['CODIGO']);
     $producto = trim($_POST['PRODUCTO']);
     $cant = (int)$_POST['CANT'];
     $unidad = trim($_POST['UNIDAD']);
+    $codigo_barras = trim($_POST['CODIGO_BARRAS'] ?? ''); // Asumo que este campo existe o es opcional
 
-    $codigo_barras = '*' . $codigo . '*';
-
-    // Validación adicional de campos
-    if (empty($codigo) || empty($producto) || $cant <= 0 || empty($unidad)) {
-        $mensaje = "<p class='btn-warning'>⚠️ Por favor, complete todos los campos y asegúrese que la Cantidad es un número positivo.</p>";
+    // Validar datos mínimos
+    if (empty($codigo) || empty($producto) || $cant <= 0) {
+        $mensaje = "<p class='btn-danger'>❌ Por favor, complete todos los campos y asegúrese que la cantidad sea positiva.</p>";
     } else {
         try {
-            // La consulta de inserción usa la tabla dinámica (Categoría o Subcategoría)
-            $sql = "INSERT INTO `$tabla_seleccionada` (CODIGO, CODIGO_BARRAS, PRODUCTO, CANT, UNIDAD) VALUES (?, ?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql);
+            // Iniciar transacción
+            $pdo->beginTransaction();
 
-            if ($stmt->execute([$codigo, $codigo_barras, $producto, $cant, $unidad])) {
-                $mensaje = "<p class='btn-success'>✅ Producto agregado a la tabla '" . htmlspecialchars(ucfirst($tabla_seleccionada)) . "' correctamente.</p>";
-                
-                // Opcional: Limpiar los campos después de la inserción exitosa
-                $_POST = []; 
-            } else {
-                $mensaje = "<p class='btn-danger'>❌ Error al agregar el producto.</p>";
-            }
+            // 1. Insertar el nuevo producto
+            // Nota: Se asume que la estructura de la tabla incluye CODIGO_BARRAS
+            $sql = "INSERT INTO `{$tabla_seleccionada}` (CODIGO, CODIGO_BARRAS, PRODUCTO, CANT, UNIDAD)
+                    VALUES (:codigo, :codigo_barras, :producto, :cant, :unidad)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':codigo' => $codigo,
+                ':codigo_barras' => $codigo_barras,
+                ':producto' => $producto,
+                ':cant' => $cant,
+                ':unidad' => $unidad
+            ]);
+
+            // 2. REGISTRAR MOVIMIENTO DE ENTRADA (KÁRDEX)
+            registrarMovimiento(
+                $pdo,
+                $codigo,
+                $producto,
+                $tabla_seleccionada,
+                $cant, // Cantidad positiva para entrada
+                'INGRESO_NUEVO',
+                NULL,
+                $user_id,
+                "Ingreso inicial de nuevo producto"
+            );
+
+            // Confirmar la transacción
+            $pdo->commit();
+
+            $mensaje = "<p class='btn-success'>✅ Producto '**" . htmlspecialchars($producto) . "**' agregado a la categoría '**" . htmlspecialchars(ucfirst($tabla_seleccionada)) . "**' con **{$cant}** unidades.</p>";
+
         } catch (PDOException $e) {
-            if ($e->getCode() == 23000) {
-                 $mensaje = "<p class='btn-danger'>❌ Error: El código de producto '<b>" . htmlspecialchars($codigo) . "</b>' ya existe en esta tabla. Los códigos deben ser únicos.</p>";
+            $pdo->rollBack();
+            if ($e->getCode() == 23000) { // Código de error para duplicado de clave primaria (CODIGO)
+                $mensaje = "<p class='btn-danger'>❌ Error: El código de producto '{$codigo}' ya existe en esta categoría.</p>";
             } else {
-                 $mensaje = "<p class='btn-danger'>❌ Error de base de datos: " . $e->getMessage() . "</p>";
+                $mensaje = "<p class='btn-danger'>❌ Error al agregar el producto: " . $e->getMessage() . "</p>";
             }
         }
     }
 }
+
 ?>
 
-<?php echo $mensaje; ?>
+<div class="container mt-5">
+    <h2>Agregar Producto</h2>
+    <?php echo $mensaje; ?>
 
-<?php if ($tabla_seleccionada): ?>
-    <h2>Agregando Producto a: "<?php echo htmlspecialchars(ucfirst($tabla_seleccionada)); ?>"</h2>
-    <form action="agregar_producto.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" method="POST">
-        
-        <div class="form-group">
-            <label for="codigo">Código:</label>
-            <input type="text" id="codigo" name="CODIGO" value="<?php echo htmlspecialchars($_POST['CODIGO'] ?? ''); ?>" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="producto">Nombre del Producto:</label>
-            <input type="text" id="producto" name="PRODUCTO" value="<?php echo htmlspecialchars($_POST['PRODUCTO'] ?? ''); ?>" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="cant">Cantidad:</label>
-            <input type="number" id="cant" name="CANT" step="1" value="<?php echo htmlspecialchars($_POST['CANT'] ?? '1'); ?>" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="unidad">Unidad:</label>
-            <select id="unidad" name="UNIDAD" required>
-                <?php 
-                    $unidades = ['UNIDAD', 'CAJA', 'EMPAQUE', 'PACA', 'PAR', 'FRASCO', 'LITRO', 'METRO', 'ROLLO'];
-                    $selected_unidad = $_POST['UNIDAD'] ?? 'UNIDAD';
-                    foreach ($unidades as $un): 
-                ?>
-                    <option value="<?php echo $un; ?>" <?php echo ($selected_unidad === $un) ? 'selected' : ''; ?>>
-                        <?php echo $un; ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Agregar Producto</button>
-        <a href="categorias.php" class="btn btn-success">Volver a Categorías</a>
-        <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" class="btn btn-dark">Ver Inventario de <?php echo ucfirst($tabla_seleccionada); ?></a>
-    </form>
-<?php else: ?>
-    <p>Por favor, seleccione una Categoría o Subcategoría desde la página <a href="categorias.php">Gestor de Categorías</a>.</p>
-<?php endif; ?>
+    <?php if ($tabla_seleccionada): ?>
+        <h2>Agregando Producto a la Categoría: "<?php echo htmlspecialchars(ucfirst($tabla_seleccionada)); ?>"</h2>
+        <form action="agregar_producto.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" method="POST">
+             <div class="form-group">
+                <label for="codigo">Código:</label>
+                <input type="text" id="codigo" name="CODIGO" value="<?php echo htmlspecialchars($_POST['CODIGO'] ?? ''); ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="producto">Nombre del Producto:</label>
+                <input type="text" id="producto" name="PRODUCTO" value="<?php echo htmlspecialchars($_POST['PRODUCTO'] ?? ''); ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cant">Cantidad:</label>
+                <input type="number" id="cant" name="CANT" step="1" value="<?php echo htmlspecialchars($_POST['CANT'] ?? '1'); ?>" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="unidad">Unidad:</label>
+                <select id="unidad" name="UNIDAD" required>
+                    <?php
+                        $unidades = ['UNIDAD', 'CAJA', 'EMPAQUE', 'PACA', 'PAR', 'FRASCO', 'LITRO', 'METRO', 'ROLLO'];
+                        $selected_unidad = $_POST['UNIDAD'] ?? 'UNIDAD';
+                        foreach ($unidades as $un):
+                    ?>
+                        <option value="<?php echo $un; ?>" <?php echo ($selected_unidad === $un) ? 'selected' : ''; ?>>
+                            <?php echo $un; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Agregar Producto</button>
+            <a href="categorias.php" class="btn btn-success">Volver a Categorías</a>
+            <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" class="btn btn-dark">Ver Inventario de <?php echo ucfirst($tabla_seleccionada); ?></a>
+        </form>
+    <?php else: ?>
+        <p>Por favor, regrese a la lista de categorías para seleccionar una.</p>
+    <?php endif; ?>
+</div>
 
 <?php include 'includes/footer.php'; ?>
