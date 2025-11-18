@@ -42,7 +42,6 @@ $sql_base = "
 
 $condiciones = [];
 $parametros = [];
-$contador_condicion = 1;
 
 // Filtro por Rango de Fechas
 if (!empty($filtro_fecha_inicio)) {
@@ -72,30 +71,118 @@ if (!empty($filtro_tipo)) {
     $parametros[':tipo'] = $filtro_tipo;
 }
 
-
 // Unir condiciones si existen
 $where_clause = '';
 if (!empty($condiciones)) {
     $where_clause = " WHERE " . implode(" AND ", $condiciones);
 }
 
-// 4. Consulta para el Total de Registros (para la paginación)
-$sql_count = "SELECT COUNT(*) FROM inventario_movimientos m" . $where_clause;
-$stmt_count = $pdo->prepare($sql_count);
-$stmt_count->execute($parametros);
-$total_registros = $stmt_count->fetchColumn();
-$total_paginas = ceil($total_registros / $limite_por_pagina);
 
-// 5. Consulta para los Registros a Mostrar
-$sql_data = $sql_base . $where_clause . " ORDER BY m.fecha_movimiento DESC LIMIT :limit OFFSET :offset";
-$parametros[':limit'] = $limite_por_pagina;
-$parametros[':offset'] = $offset;
-
+// --- LÓGICA PRINCIPAL DEL KÁRDEX: Obtener todos los movimientos filtrados y calcular saldo ---
 try {
-    $stmt_data = $pdo->prepare($sql_data);
-    // Ejecutar con todos los parámetros de filtro y paginación
-    $stmt_data->execute($parametros);
-    $movimientos = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
+    // 4. Consulta para TODOS los Registros que coinciden con los filtros, ordenados cronológicamente (ASC)
+    $sql_all_filtered = $sql_base . $where_clause . " ORDER BY m.fecha_movimiento ASC, m.id ASC";
+
+    $all_params = $parametros;
+
+    $stmt_all = $pdo->prepare($sql_all_filtered);
+    $stmt_all->execute($all_params);
+    $movimientos_chronological = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
+
+    // 5. CÁLCULO DEL SALDO CORRIENTE EN PHP (Kárdex)
+    $saldo_por_producto = [];
+    $movimientos_con_saldo = [];
+
+    foreach ($movimientos_chronological as $mov) {
+        $key = $mov['codigo_producto'] . '|' . $mov['categoria'];
+
+        if (!isset($saldo_por_producto[$key])) {
+            $saldo_por_producto[$key] = 0;
+        }
+
+        $mov['saldo_anterior'] = $saldo_por_producto[$key]; 
+        $saldo_por_producto[$key] += $mov['cantidad_afectada']; 
+        $mov['saldo_restante'] = $saldo_por_producto[$key]; 
+
+        $movimientos_con_saldo[] = $mov;
+    }
+
+
+    // =================================================================
+    // --- OPTIMIZACIÓN: OBTENER EL STOCK ACTUAL EN LA BD POR LOTES ---
+    // =================================================================
+
+    // 6. 1. Agrupar códigos de producto por tabla de categoría
+    $productos_por_tabla = [];
+    foreach ($movimientos_con_saldo as $mov) {
+        $categoria = $mov['categoria'];
+        $codigo = $mov['codigo_producto'];
+        
+        // Evitar duplicados de código dentro de la misma tabla
+        $productos_por_tabla[$categoria][$codigo] = $codigo;
+    }
+
+    // 6. 2. Ejecutar consultas por lotes (una por cada tabla única)
+    $stock_actual_map = []; // Mapa final: 'codigo|categoria' => CANT
+    
+    foreach ($productos_por_tabla as $categoria => $codigos) {
+        // Validación de seguridad para el nombre de la tabla
+        if (!preg_match('/^[a-zA-Z0-9_]+$/i', $categoria)) {
+            continue; 
+        }
+
+        // Generar una lista de marcadores de posición para la cláusula IN (ej. ?, ?, ?)
+        $placeholders = implode(',', array_fill(0, count($codigos), '?'));
+        
+        try {
+            // Consultar la cantidad (CANT) y el CODIGO para todos los productos de esta tabla
+            $sql_stock = "SELECT CODIGO, CANT FROM `$categoria` WHERE CODIGO IN ($placeholders)";
+            $stmt_stock = $pdo->prepare($sql_stock);
+            
+            // Ejecutar con el array de códigos
+            $stmt_stock->execute(array_values($codigos));
+            $stocks_en_tabla = $stmt_stock->fetchAll(PDO::FETCH_KEY_PAIR); // Obtiene [CODIGO => CANT]
+
+            // Fusionar los resultados en el mapa principal
+            foreach ($codigos as $codigo) {
+                $key = $codigo . '|' . $categoria;
+                if (isset($stocks_en_tabla[$codigo])) {
+                    // Producto encontrado en la tabla
+                    $stock_actual_map[$key] = (int)$stocks_en_tabla[$codigo];
+                } else {
+                    // Producto no encontrado (posiblemente eliminado de la tabla original)
+                    $stock_actual_map[$key] = 'N/D (Eliminado)';
+                }
+            }
+        } catch (PDOException $e) {
+            // Marcar todos los productos de esta tabla con error
+            foreach ($codigos as $codigo) {
+                $stock_actual_map[$codigo . '|' . $categoria] = 'Error de BD';
+            }
+        }
+    }
+
+    // 6. 3. Adjuntar el stock actual a cada movimiento
+    foreach ($movimientos_con_saldo as &$mov) {
+        $key = $mov['codigo_producto'] . '|' . $mov['categoria'];
+        $mov['stock_actual_bd'] = $stock_actual_map[$key] ?? 'N/D';
+    }
+    unset($mov); // Romper la referencia
+
+    // =================================================================
+    // --- FIN OPTIMIZACIÓN ---
+    // =================================================================
+
+    // 7. APLICAR PAGINACIÓN Y ORDEN INVERSO (DESC) EN EL ARRAY FINAL
+
+    // Invertir el array para mostrar los más recientes primero (orden DESC)
+    $movimientos_con_saldo = array_reverse($movimientos_con_saldo);
+
+    $total_registros = count($movimientos_con_saldo);
+    $total_paginas = ceil($total_registros / $limite_por_pagina);
+
+    // Extraer la porción correspondiente a la página actual
+    $movimientos = array_slice($movimientos_con_saldo, $offset, $limite_por_pagina);
 
     // Obtener la lista de categorías (tablas) para el filtro
     $stmt_categorias = $pdo->query("SELECT nombre_categoria FROM categorias ORDER BY nombre_categoria");
@@ -104,15 +191,20 @@ try {
 } catch (PDOException $e) {
     $mensaje = "<p class='btn-danger'>❌ Error al cargar los movimientos: " . $e->getMessage() . "</p>";
     $movimientos = [];
+    $total_registros = 0;
+    $total_paginas = 0;
+    $categorias = [];
 }
 
-// Tipos de Movimiento fijos (Basado en la implementación de los archivos anteriores)
+// ... (Resto de funciones y variables)
+
+// Tipos de Movimiento fijos
 $tipos_movimiento = [
     'INGRESO_NUEVO',
     'AJUSTE_ENTRADA_MANUAL',
     'AJUSTE_SALIDA_MANUAL',
     'ENTREGA_SOLICITUD',
-    'REVERSION',
+    'DEVOLUCIÓN',
     'ELIMINACION_TOTAL'
 ];
 
@@ -120,15 +212,12 @@ $tipos_movimiento = [
 function generarUrlPaginacion($pagina) {
     $params = $_GET;
     $params['p'] = $pagina;
-    // Remueve 'mensaje' si existe
     unset($params['mensaje']);
     return 'reportes.php?' . http_build_query($params);
 }
 
 ?>
-
-<div class="container mt-5">
-    <h2>Reporte de Movimientos de Inventario (Kárdex)</h2>
+    <h2>Reporte de Movimientos de Inventario</h2>
     <?php echo $mensaje; ?>
 
     <form method="GET" action="reportes.php" class="mb-4 p-3 border rounded bg-light">
@@ -178,42 +267,43 @@ function generarUrlPaginacion($pagina) {
         </div>
     </form>
 
-    <p class="text-muted">Mostrando **<?php echo $total_registros; ?>** movimientos totales. (Página <?php echo $pagina_actual; ?> de <?php echo $total_paginas; ?>)</p>
+
+    <p class="text-muted">Mostrando <?php echo $total_registros; ?> movimientos totales. (Página <?php echo $pagina_actual; ?> de <?php echo $total_paginas; ?>)</p>
 
     <?php if (!empty($movimientos)): ?>
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover table-sm">
-                <thead class="table-dark">
+                <thead class="table-dark" style="text-align: center;">
                     <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
-                        <th>Tipo Movimiento</th>
-                        <th>Cód. Producto</th>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th>Cantidad Afectada</th>
-                        <th>Usuario</th>
-                        <th>Ref. Solicitud</th>
-                        <th>Comentarios</th>
+                        <th>FECHA</th>
+                        <th>MOVIMIENTO</th>
+                        <th>COD. PRODUCTO</th>
+                        <th>PRODUCTO</th>
+                        <th>CATEGORIA</th>
+                        <th>CANTIDAD</th> 
+                        <th>#SOLICITUD</th>
+                        <th>COMENTARIOS</th>
+                        <th>STOCK ACTUAL</th> 
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($movimientos as $mov): ?>
                         <tr class="<?php echo ($mov['cantidad_afectada'] > 0) ? 'table-success' : 'table-danger'; ?>">
-                            <td><?php echo htmlspecialchars($mov['id']); ?></td>
-                            <td><?php echo htmlspecialchars($mov['fecha_movimiento']); ?></td>
-                            <td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($mov['fecha_movimiento']); ?></td>
+                            <td style="text-align: center;">
                                 <strong><?php echo htmlspecialchars(str_replace('_', ' ', $mov['tipo_movimiento'])); ?></strong>
                             </td>
-                            <td><?php echo htmlspecialchars($mov['codigo_producto']); ?></td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($mov['codigo_producto']); ?></td>
                             <td><?php echo htmlspecialchars($mov['nombre_producto']); ?></td>
-                            <td><?php echo htmlspecialchars(ucfirst($mov['categoria'])); ?></td>
-                            <td>
-                                <strong><?php echo htmlspecialchars($mov['cantidad_afectada']); ?></strong>
+                            <td style="text-align: center;"><?php echo htmlspecialchars(ucfirst($mov['categoria'])); ?></td>
+                            <td style="text-align: center;">
+                                <strong class="text-primary"><?php echo htmlspecialchars($mov['saldo_restante']); ?></strong> 
                             </td>
-                            <td><?php echo htmlspecialchars($mov['nombre_usuario'] ?? 'N/D'); ?></td>
-                            <td><?php echo htmlspecialchars($mov['referencia_id'] ?? 'N/A'); ?></td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($mov['referencia_id'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($mov['comentarios'] ?? ''); ?></td>
+                            <td style="text-align: center;">
+                                <span> <?php echo htmlspecialchars($mov['stock_actual_bd']); ?></span> 
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -245,6 +335,5 @@ function generarUrlPaginacion($pagina) {
     <?php else: ?>
         <p class="alert alert-info">No se encontraron movimientos de inventario con los filtros seleccionados.</p>
     <?php endif; ?>
-</div>
 
 <?php require_once 'includes/footer.php'; ?>

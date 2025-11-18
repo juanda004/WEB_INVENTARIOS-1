@@ -52,9 +52,9 @@ try {
                     <?php foreach ($productos as $producto): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($producto['CODIGO']); ?></td>
-                            <td><?php echo htmlspecialchars($producto['CODIGO_BARRAS']); ?></td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($producto['CODIGO_BARRAS']); ?></td>
                             <td><?php echo htmlspecialchars($producto['PRODUCTO']); ?></td>
-                            <td><?php echo htmlspecialchars($producto['CANT']); ?></td>
+                            <td style="text-align: center;" ><?php echo htmlspecialchars($producto['CANT']); ?></td>
                             <td>
                                 <a href="editar_producto.php?categoria=<?php echo htmlspecialchars($categoria_nombre); ?>&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>" class="btn btn-warning">Editar</a>
                                 <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($categoria_nombre); ?>&action=eliminar&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>" class="btn btn-danger" onclick="return confirm('¿Está seguro de que desea eliminar este producto?');">Eliminar</a>

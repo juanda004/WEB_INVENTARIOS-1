@@ -72,7 +72,7 @@ function obtenerTodasLasTablas(PDO $pdo): array
  */
 function gestionarInventario(PDO $pdo, array $productos, string $operacion, int $solicitud_id, int $user_id) {
     $tablas = obtenerTodasLasTablas($pdo);
-    $tipo_movimiento = ($operacion === '-') ? 'ENTREGA_SOLICITUD' : 'REVERSION';
+    $tipo_movimiento = ($operacion === '-') ? 'ENTREGA_SOLICITUD' : 'DEVOLUCIÓN';
 
     if (empty($tablas)) {
         throw new Exception("No se encontraron tablas de categorías para buscar productos.");
@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion_solicitud'])) {
         } elseif ($nuevo_estado !== 'entregado' && $estado_actual === 'entregado') {
             gestionarInventario($pdo, $productos, '+', $solicitud_id, $user_id); // Revertir unidades y registrar
             $fecha_update = ", fecha_entrega = NULL";
-            $mensaje_accion = "revertido";
+            $mensaje_accion = "devuelto";
 
         // Caso C: Otro cambio de estado o el estado se mantiene
         } elseif ($nuevo_estado === 'cancelado' && $estado_actual !== 'cancelado') {
