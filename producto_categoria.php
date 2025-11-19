@@ -17,11 +17,11 @@ try {
 }
 
 ?>
-
-<h2>Inventario General por Categoría</h2>
+<h2>Inventario General por Categoría</h2><br>
 
 <?php echo $mensaje; ?>
 
+<div class="table-responsive">
 <?php if (!empty($categorias)): ?>
     <?php foreach ($categorias as $categoria_nombre): ?>
         <h3>Categoría: <?php echo htmlspecialchars(ucfirst($categoria_nombre)); ?></h3>
@@ -71,5 +71,6 @@ try {
 <?php else: ?>
     <p>No hay categorías disponibles en el inventario.</p>
 <?php endif; ?>
+</div>
 
 <?php include 'includes/footer.php'; ?>
