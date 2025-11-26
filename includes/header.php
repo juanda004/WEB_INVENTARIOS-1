@@ -37,7 +37,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px 0;
+            flex-wrap: wrap;
         }
 
         .btn-logout {
@@ -53,7 +54,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <body>
 
     <div class="header container">
-        <h1>Sistema de Inventario NCS</h1>
+        <div style="display: flexbox;">
+            <h1>Inventario NCS</h1>
+        </div>
 
         <?php
         // Solo muestra el botón de cerrar sesión si el usuario está logueado
@@ -61,7 +64,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         if (isset($_SESSION['user_id']) && $current_page !== 'login.php' && $current_page !== 'register.php' && $current_page !== 'password_reset.php') {
             echo '
             <nav>
-                <ul class= "nav nav-pills">
+                <ul class= "nav nav-pills" style="margin-bottom: 1rem;";>
                     <li class="nav-item"><a class="nav-link" href="index.php">Inicio</a></li>';
                 
                 if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
