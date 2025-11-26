@@ -1,6 +1,7 @@
 <?php
 // agregar_producto.php
 // Este script agrega un nuevo producto a la tabla (Categoría o Subcategoría) seleccionada por URL.
+
 session_start();
 //Control de acceso: solo para administradores
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -16,7 +17,8 @@ $mensaje = '';
 $tabla_seleccionada = isset($_GET['categoria']) ? $_GET['categoria'] : null;
 $user_id = $_SESSION['user_id'] ?? 0; // Se asume que el ID del usuario está aquí
 
-// --- Función Auxiliar necesaria para el Kárdex ---
+// --- Función Auxiliar necesaria para el Kárdex (Registro de Movimientos) ---
+// Esta función NO ha sido modificada, tal como lo solicitaste.
 function registrarMovimiento(PDO $pdo, $codigo, $nombre, $categoria, $cantidad, $tipo, $ref_id, $user_id, $comentarios = '') {
     $stmt = $pdo->prepare("
         INSERT INTO inventario_movimientos
@@ -34,7 +36,6 @@ function registrarMovimiento(PDO $pdo, $codigo, $nombre, $categoria, $cantidad, 
         ':comentarios' => $comentarios
     ]);
 }
-// --------------------------------------------------
 
 // Bloque GET: Validar el nombre de la tabla
 if (empty($tabla_seleccionada)) {
@@ -55,77 +56,71 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $tabla_seleccionada) {
     $producto = trim($_POST['PRODUCTO']);
     $cant = (int)$_POST['CANT'];
     $unidad = trim($_POST['UNIDAD']);
-    $codigo_barras = trim($_POST['CODIGO_BARRAS'] ?? ''); // Asumo que este campo existe o es opcional
 
     // Validar datos mínimos
     if (empty($codigo) || empty($producto) || $cant <= 0) {
-        $mensaje = "<p class='btn-danger'>❌ Por favor, complete todos los campos y asegúrese que la cantidad sea positiva.</p>";
+        $mensaje = "<p class='btn-danger'>❌ Error: Todos los campos son obligatorios y la cantidad debe ser positiva.</p>";
     } else {
+        // ✅ CORRECCIÓN 1: Generar el CODIGO_BARRAS a partir del CODIGO
+        $codigo_barras = '*' . $codigo . '*'; 
+        
         try {
-            // Iniciar transacción
-            $pdo->beginTransaction();
+            // 1. Verificar si el código ya existe para evitar duplicados
+            $check_sql = "SELECT COUNT(*) FROM `$tabla_seleccionada` WHERE CODIGO = :codigo";
+            $check_stmt = $pdo->prepare($check_sql);
+            $check_stmt->execute([':codigo' => $codigo]);
+            
+            if ($check_stmt->fetchColumn() > 0) {
+                $mensaje = "<p class='btn-warning'>⚠️ Advertencia: Ya existe un producto con el código '{$codigo}'.</p>";
+            } else {
+                // 2. Insertar el nuevo producto con CODIGO_BARRAS
+                // ✅ CORRECCIÓN 2: Incluir CODIGO_BARRAS en la consulta SQL
+                $sql = "INSERT INTO `$tabla_seleccionada` (CODIGO, CODIGO_BARRAS, PRODUCTO, CANT, UNIDAD) 
+                        VALUES (:codigo, :codigo_barras, :producto, :cant, :unidad)";
+                
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    ':codigo' => $codigo,
+                    ':codigo_barras' => $codigo_barras, // <-- CORRECCIÓN 3: Bind del parámetro
+                    ':producto' => $producto,
+                    ':cant' => $cant,
+                    ':unidad' => $unidad
+                ]);
 
-            // 1. Insertar el nuevo producto
-            // Nota: Se asume que la estructura de la tabla incluye CODIGO_BARRAS
-            $sql = "INSERT INTO `{$tabla_seleccionada}` (CODIGO, CODIGO_BARRAS, PRODUCTO, CANT, UNIDAD)
-                    VALUES (:codigo, :codigo_barras, :producto, :cant, :unidad)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                ':codigo' => $codigo,
-                ':codigo_barras' => $codigo_barras,
-                ':producto' => $producto,
-                ':cant' => $cant,
-                ':unidad' => $unidad
-            ]);
+                // 3. Registrar el movimiento de inventario (Kárdex)
+                registrarMovimiento($pdo, $codigo, $producto, $tabla_seleccionada, $cant, 'INGRESO NUEVO', 0, $user_id, "Registro inicial del producto.");
 
-            // 2. REGISTRAR MOVIMIENTO DE ENTRADA (KÁRDEX)
-            registrarMovimiento(
-                $pdo,
-                $codigo,
-                $producto,
-                $tabla_seleccionada,
-                $cant, // Cantidad positiva para entrada
-                'INGRESO_NUEVO',
-                NULL,
-                $user_id,
-                "Ingreso inicial de nuevo producto"
-            );
-
-            // Confirmar la transacción
-            $pdo->commit();
-
-            $mensaje = "<p class='btn-success'>✅ Producto '**" . htmlspecialchars($producto) . "**' agregado a la categoría '**" . htmlspecialchars(ucfirst($tabla_seleccionada)) . "**' con **{$cant}** unidades.</p>";
+                $mensaje = "<p class='btn-success'>✅ Producto '{$producto}' agregado exitosamente a " . ucfirst($tabla_seleccionada) . ".</p>";
+                
+                // Limpiar POST para evitar reenvío al recargar
+                $_POST = [];
+            }
 
         } catch (PDOException $e) {
-            $pdo->rollBack();
-            if ($e->getCode() == 23000) { // Código de error para duplicado de clave primaria (CODIGO)
-                $mensaje = "<p class='btn-danger'>❌ Error: El código de producto '{$codigo}' ya existe en esta categoría.</p>";
-            } else {
-                $mensaje = "<p class='btn-danger'>❌ Error al agregar el producto: " . $e->getMessage() . "</p>";
-            }
+            // Error de base de datos
+            $mensaje = "<p class='btn-danger'>❌ Error al agregar el producto: " . $e->getMessage() . "</p>";
         }
     }
 }
-
 ?>
 
-<div class="container mt-5">
+<div class="container">
     <h2>Agregar Producto</h2>
     <?php echo $mensaje; ?>
 
     <?php if ($tabla_seleccionada): ?>
         <h2>Agregando Producto a la Categoría: "<?php echo htmlspecialchars(ucfirst($tabla_seleccionada)); ?>"</h2>
         <form action="agregar_producto.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" method="POST">
-             <div class="form-group">
+            <div class="form-group">
                 <label for="codigo">Código:</label>
                 <input type="text" id="codigo" name="CODIGO" value="<?php echo htmlspecialchars($_POST['CODIGO'] ?? ''); ?>" required>
             </div>
-
+            
             <div class="form-group">
                 <label for="producto">Nombre del Producto:</label>
                 <input type="text" id="producto" name="PRODUCTO" value="<?php echo htmlspecialchars($_POST['PRODUCTO'] ?? ''); ?>" required>
             </div>
-
+            
             <div class="form-group">
                 <label for="cant">Cantidad:</label>
                 <input type="number" id="cant" name="CANT" step="1" value="<?php echo htmlspecialchars($_POST['CANT'] ?? '1'); ?>" min="1" required>
@@ -151,7 +146,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $tabla_seleccionada) {
             <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" class="btn btn-dark">Ver Inventario de <?php echo ucfirst($tabla_seleccionada); ?></a>
         </form>
     <?php else: ?>
-        <p>Por favor, regrese a la lista de categorías para seleccionar una.</p>
+        <p>Por favor, regrese a la lista de categorías para seleccionar dónde agregar el producto.</p>
+        <a href="categorias.php" class="btn btn-dark">Volver a Categorías</a>
     <?php endif; ?>
 </div>
 
