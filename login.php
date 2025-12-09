@@ -49,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 }
 ?>
 
-<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-5">
             <div class="card">
@@ -77,6 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             </div>
         </div>
     </div>
-</div>
+    <br>
 
 <?php require_once 'includes/footer.php'; ?>

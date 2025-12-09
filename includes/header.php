@@ -86,5 +86,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         ?>
     </div>
+    <br>
     <div class="container main-content">
         <!-- El contenido de la página se insertará aquí -->
