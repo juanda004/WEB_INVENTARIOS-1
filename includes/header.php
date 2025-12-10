@@ -55,7 +55,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <div class="header container">
         <div style="display: flexbox;">
-            <h1>Inventario NCS</h1>
+            <h1 style="font-weight: bold;" >Inventario NCS</h1>
         </div>
 
         <?php
@@ -72,6 +72,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     echo '<li class="nav-item"><a class="nav-link" href="producto_categoria.php">Productos</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="reportes.php">Reportes</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="ver_solicitudes.php">Ver Solicitudes</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="escanear.php">Buscar</a></li>';
                 }
 
                 //Opciones para todos los usuarios
