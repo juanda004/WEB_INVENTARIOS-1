@@ -121,6 +121,7 @@ try {
                 <?php echo htmlspecialchars(ucfirst($cat['nombre_categoria'])); ?>
                 <div>
                     <?php if ($user_role === 'admin'): ?>
+                        <a class="btn btn-light btn-sm" href="descargar_inventario.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Descargar Inventario</a>
                          <a class="btn btn-info btn-sm" href="gestor_subcategorias.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Gestionar Subcategorías</a>
                         
                         <a class="btn btn-dark btn-sm" href="ver_productos.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Ver Productos</a>                        <a class="btn btn-success btn-sm" href="agregar_producto.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Agregar Producto</a>
