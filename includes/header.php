@@ -55,7 +55,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <div class="header container">
         <div style="display: flexbox;">
-            <a href="index.php"><h1 style="font-weight: bold; color: black;">Inventario NCS</h1></a>
+            <a href="login.php"><h1 style="font-weight: bold; color: black;">Inventario NCS</h1></a>
         </div>
 
         <?php
