@@ -141,10 +141,9 @@ if ($categoria_id) {
 
 <?php if ($categoria_id && $user_role === 'admin'): ?>
     <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
-        <h3>Crear Nueva Subcategoría/Tabla</h3>
         <form action="gestor_subcategorias.php?categoria_id=<?php echo htmlspecialchars($categoria_id); ?>" method="POST">
             <div class="form-group">
-                <label for="nombre_subcategoria">Nombre de la Subcategoría (Será el nombre de la tabla, ej: salon_a1):</label>
+                <label for="nombre_subcategoria" style="font-size: larger;">Crea la Subcategoría (el nombre de la tabla):</label>
                 <input type="text" id="nombre_subcategoria" name="nombre_subcategoria" required>
             </div>
             <button type="submit" name="nueva_subcategoria" class="btn btn-primary">Crear Subcategoría/Tabla</button>

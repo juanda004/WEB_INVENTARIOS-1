@@ -9,7 +9,6 @@ include 'includes/db.php';
 $mensaje = '';
 $categorias_disponibles = [];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && $user_role === 'admin') {}
 // --- Paso 1: Obtener todas las categorías (tablas) de la base de datos ---
 // ESTO ES DINÁMICO: Consulta la tabla de control 'categorias' para saber qué tablas existen.
     try {
