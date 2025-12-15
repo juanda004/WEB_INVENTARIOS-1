@@ -4,6 +4,7 @@
 session_start();
 require_once 'includes/db.php';
 require_once 'includes/header.php';
+require_once 'descargar_inventario.php';
 
 $mensaje = '';
 $categorias_data = []; // Cambiado a $categorias_data para manejar ID y nombre
@@ -60,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_role === 'admin') {
                 crearTablaCategoria($pdo, $nombre);
                 $mensaje = "<p class='btn-success'>✅ Categoría '<b>" . htmlspecialchars($nombre) . "</b>' creada correctamente.</p>";
             } catch (PDOException $e) {
-                 if ($e->getCode() == 23000) {
-                     $mensaje = "<p class='btn-danger'>❌ Error: Ya existe una categoría con ese nombre.</p>";
+                if ($e->getCode() == 23000) {
+                    $mensaje = "<p class='btn-danger'>❌ Error: Ya existe una categoría con ese nombre.</p>";
                 } else {
                     $mensaje = "<p class='btn-danger'>❌ Error al crear la categoría: " . $e->getMessage() . "</p>";
                 }
@@ -101,19 +102,60 @@ try {
 
 ?>
 
-<h2>Gestión de Categorías</h2>
+<br>
+<h2 style="text-align: -webkit-center;">Gestión de Categorías</h2><br>
 <?php echo $mensaje; ?>
 
 <?php if ($user_role === 'admin'): ?>
-    <h3>Crear Nueva Categoría</h3>
+    <h3>Crear Categoría</h3>
     <form action="categorias.php" method="POST">
-        <label for="nueva_categoria_nombre">Nombre de la Categoría (ej: ferreteria):</label>
+        <label for="nueva_categoria_nombre" style="font-size: x-large;">Nombre de la Categoría:</label>
         <input type="text" id="nueva_categoria_nombre" name="nueva_categoria_nombre" required>
         <button type="submit" name="nueva_categoria" class="btn btn-primary">Crear</button>
     </form>
     <hr>
-<?php endif; ?>
 
+    <!-- INICIO: Sección de Descarga de Inventario - visible solo para Admin -->
+    <h3>Descargar Inventario</h3>
+    <?php if (empty($categorias_data)): // Usamos categorias_data ya que tiene los datos cargados ?>
+        <p class='btn-warning'>No hay categorías disponibles para descargar. Por favor, crea categorías en el Gestor de
+            Categorías.</p>
+    <?php else: ?>
+        <form action="descargar_inventario.php" method="POST">
+            <label for="categoria_base" style="font-size: x-large;">Seleccionar Categoría Base:</label>
+            <select class="form-select form-select-lg-sm" id="categoria_base" name="categoria_base" style="font-size: 20px;"
+                required>
+                <!-- Opción para descargar todo -->
+                <option value="todos">-- Descargar TODO el Inventario --</option>
+                <option disabled>------------------------------</option>
+
+                <?php
+                // Lista de categorias principales
+                // Se asume que una categoria principal no contiene guiones bajos
+                $main_categories = [];
+                // Se recorren los datos cargados en $categorias_data
+                foreach ($categorias_data as $cat) {
+                    $nombre_cat = $cat['nombre_categoria'];
+                    if (strpos($nombre_cat, '_') === false) {
+                        $main_categories[] = $nombre_cat;
+                    }
+                }
+
+                // Opción para cada categoría principal
+                foreach (array_unique($main_categories) as $cat): ?>
+                    <option value="<?php echo htmlspecialchars($cat); ?>">
+                        <?php echo htmlspecialchars(ucwords($cat)); ?> (Incluirá Subcategorías)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <!-- Botón actualizado a CSV -->
+            <button type="submit" class="btn btn-success">Descargar Inventario (CSV)</button>
+        </form>
+    <?php endif; ?>
+    <hr>
+    <!-- FIN: Sección de Descarga de Inventario -->
+    
+<?php endif; // Fin del bloque IF admin ?>
 <?php if ($categorias_data): ?>
     <ul class="list-group">
         <?php foreach ($categorias_data as $cat): ?>
@@ -121,19 +163,27 @@ try {
                 <?php echo htmlspecialchars(ucfirst($cat['nombre_categoria'])); ?>
                 <div>
                     <?php if ($user_role === 'admin'): ?>
-                        <a class="btn btn-light btn-sm" href="descargar_inventario.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Descargar Inventario</a>
-                         <a class="btn btn-info btn-sm" href="gestor_subcategorias.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Gestionar Subcategorías</a>
-                        
-                        <a class="btn btn-dark btn-sm" href="ver_productos.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Ver Productos</a>                        <a class="btn btn-success btn-sm" href="agregar_producto.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Agregar Producto</a>
-                        
+                        <a class="btn btn-info btn-sm"
+                            href="gestor_subcategorias.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Gestionar
+                            Subcategorías</a>
+
+                        <a class="btn btn-dark btn-sm"
+                            href="ver_productos.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Ver Productos</a>
+                        <a class="btn btn-success btn-sm"
+                            href="agregar_producto.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Agregar
+                            Producto</a>
+
                         <form action="categorias.php" method="POST" style="display:inline;"
                             onsubmit="return confirm('¿Eliminar la categoría <?php echo htmlspecialchars($cat['nombre_categoria']); ?>? Esto eliminará la tabla y todas las subcategorías asociadas.');">
-                            <input type="hidden" name="eliminar_categoria_nombre" value="<?php echo htmlspecialchars($cat['nombre_categoria']); ?>">
+                            <input type="hidden" name="eliminar_categoria_nombre"
+                                value="<?php echo htmlspecialchars($cat['nombre_categoria']); ?>">
                             <button class="btn btn-danger btn-sm" type="submit" name="eliminar_categoria">Eliminar</button>
                         </form>
                     <?php else: ?>
-                        <a class="btn btn-info btn-sm" href="gestor_subcategorias.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Ver Subcategorías</a>
-                        <a class="btn btn-dark btn-sm" href="ver_productos.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Ver Productos</a>
+                        <a class="btn btn-info btn-sm"
+                            href="gestor_subcategorias.php?categoria_id=<?php echo urlencode($cat['id']); ?>">Ver Subcategorías</a>
+                        <a class="btn btn-dark btn-sm"
+                            href="ver_productos.php?categoria=<?php echo urlencode($cat['nombre_categoria']); ?>">Ver Productos</a>
                     <?php endif; ?>
                 </div>
             </li>
