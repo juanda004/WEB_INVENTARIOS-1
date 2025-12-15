@@ -157,7 +157,7 @@ try {
     
 <?php endif; // Fin del bloque IF admin ?>
 <?php if ($categorias_data): ?>
-    <ul class="list-group">
+    <ul class="list-group" style="font-size: larger;">
         <?php foreach ($categorias_data as $cat): ?>
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <?php echo htmlspecialchars(ucfirst($cat['nombre_categoria'])); ?>
