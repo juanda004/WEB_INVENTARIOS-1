@@ -147,7 +147,7 @@ if (isset($_GET['mensaje'])) {
 }
 
 ?>
-
+<div class="container main-content">
     <h2>Inventario de Categoría: <?php echo htmlspecialchars(ucfirst($categoria_seleccionada)); ?></h2>
     <?php echo $mensaje; ?>
 
@@ -200,5 +200,5 @@ if (isset($_GET['mensaje'])) {
             '<?php echo htmlspecialchars($categoria_seleccionada); ?>'.</p>
     <?php endif; ?>
     <div><a class="btn btn-dark" href="categorias.php">Volver a Categorías</a></div>
-
-<?php include 'includes/footer.php'; ?>
+    <?php include 'includes/footer.php'; ?>
+</div>

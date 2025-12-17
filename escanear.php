@@ -61,53 +61,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['codigo_busqueda'])) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Escanear Producto</title>
-</head>
 <body>
-    <h2>Busqueda Código de Barras</h2><br>
+    <div class="container main-content">
+        <h2>Busqueda Código de Barras</h2><br>
 
-    <!-- Formulario de búsqueda -->
-    <form action="escanear.php" method="POST">
-        <label for="codigo_busqueda" style="font-size: x-large;">Código de Barras:</label>
-        <!-- El autofocus es útil para simular el escaneo directo con un lector de códigos -->
-        <input type="text" id="codigo_busqueda" name="codigo_busqueda" style="margin-left: 10px;" value="<?php echo isset($codigo_busqueda) ? htmlspecialchars($codigo_busqueda) : ''; ?>" required autofocus>
-        <button type="submit" class="btn btn-primary" style="margin-left: 10px;">Buscar Producto</button>
-    </form>
+        <!-- Formulario de búsqueda -->
+        <form action="escanear.php" method="POST">
+            <label for="codigo_busqueda" style="font-size: x-large;">Código de Barras:</label>
+            <!-- El autofocus es útil para simular el escaneo directo con un lector de códigos -->
+            <input type="text" id="codigo_busqueda" name="codigo_busqueda" style="margin-left: 10px;"
+                value="<?php echo isset($codigo_busqueda) ? htmlspecialchars($codigo_busqueda) : ''; ?>" required
+                autofocus>
+            <button type="submit" class="btn btn-primary" style="margin-left: 10px;">Buscar Producto</button>
+        </form>
 
-    <hr>
-    <?php echo $mensaje; ?>
+        <hr>
+        <?php echo $mensaje; ?>
 
-    <!-- Muestra los resultados si se encuentra un producto -->
-    <?php if ($producto_encontrado): ?>
-        <div class="card-resultado">
-            <h3>Producto Encontrado</h3>
-            <table border="1" style="width:100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th>CATEGORIA</th>
-                        <th>CÓDIGO INTERNO</th>
-                        <th>PRODUCTO</th>
-                        <th>CANTIDAD</th>
-                        <th>UNIDAD</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="text-align: center;"><?php echo htmlspecialchars(ucfirst($categoria_del_producto)); ?></td>
-                        <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['CODIGO']); ?></td>
-                        <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['PRODUCTO']); ?></td>
-                        <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['CANT']); ?></td>
-                        <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['UNIDAD']); ?></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    <?php endif; ?>
+        <!-- Muestra los resultados si se encuentra un producto -->
+        <?php if ($producto_encontrado): ?>
+            <div class="card-resultado">
+                <h3>Producto Encontrado</h3>
+                <table border="1" style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>CATEGORIA</th>
+                            <th>CÓDIGO INTERNO</th>
+                            <th>PRODUCTO</th>
+                            <th>CANTIDAD</th>
+                            <th>UNIDAD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: center;">
+                                <?php echo htmlspecialchars(ucfirst($categoria_del_producto)); ?></td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['CODIGO']); ?>
+                            </td>
+                            <td style="text-align: center;">
+                                <?php echo htmlspecialchars($producto_encontrado['PRODUCTO']); ?></td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['CANT']); ?>
+                            </td>
+                            <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['UNIDAD']); ?>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
 
 </body>
+
 </html>
 <?php include 'includes/footer.php'; ?>

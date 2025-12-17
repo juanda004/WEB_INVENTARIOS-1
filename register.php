@@ -52,46 +52,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Registrarse</title>
-</head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 mt-5">
-                <div class="card">
-                    <div class="card-header text-center">
-                        <h2>Crear una cuenta</h2>
-                    </div>
-                    <div class="card-body">
-                        <?php echo $mensaje; ?>
-                        <form action="register.php" method="POST">
-                            <div class="form-group">
-                                <label for="email">Correo Electrónico:</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="password">Contraseña:</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="confirm_password">Confirmar Contraseña:</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                            </div>
-                            <button type="submit" name="register" class="btn btn-success btn-block">Registrarse</button>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center">
-                        <p>¿Ya tienes una cuenta? <a href="login.php">Inicia sesión</a></p>
-                    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-5">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>Crear una cuenta</h2>
                 </div>
+                <div class="card-body">
+                    <?php echo $mensaje; ?>
+                    <form action="register.php" method="POST">
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico:</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirmar Contraseña:</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                required>
+                        </div>
+                        <button type="submit" name="register" class="btn btn-success btn-block">Registrarse</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p>¿Ya tienes una cuenta? <a href="login    .php">Inicia sesión</a></p>
+                </div>
+                <?php require_once 'includes/footer.php'; ?>
             </div>
         </div>
     </div>
-</body>
-</html>
-
-<?php require_once 'includes/footer.php'; ?>

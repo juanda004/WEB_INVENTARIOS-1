@@ -22,8 +22,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #000000ff;
             padding-top: 20px;
+            background-image: url("https://lh3.googleusercontent.com/p/AF1QipPdNg6Gxx_ME31mCbA8JyoMMLrlZ3qSO6PTVRFA=s1360-w1360-h1020-rw");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow-x: hidden;
         }
 
         .container {
@@ -55,7 +60,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <div class="header container">
         <div style="display: flexbox;">
-            <a href="login.php"><h1 style="font-weight: bold; color: black;">Inventario NCS</h1></a>
+            <a href="login.php">
+                <h1 style="font-weight: bold; color: black;">Inventario NCS</h1>
+            </a>
         </div>
 
         <?php
@@ -66,27 +73,28 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <nav>
                 <ul class= "nav nav-pills" style="margin-bottom: 1rem;";>
                     <li class="nav-item"><a class="nav-link" href="index.php">Inicio</a></li>';
-                
-                if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-                    
-                    echo '<li class="nav-item"><a class="nav-link" href="producto_categoria.php">Productos</a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="reportes.php">Reportes</a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="ver_solicitudes.php">Ver Solicitudes</a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="escanear.php">Buscar</a></li>';
-                }
 
-                //Opciones para todos los usuarios
-                echo '<li class="nav-item"><a class="nav-link" href="categorias.php">Categorías</a></li>';
-                
-                if (isset($_SESSION['role']) && $_SESSION['role']=== 'user'){
-                    echo '<li class="nav-item"><a class="nav-link" href="solicitudes.php">Solicitudes</a></li>';
-                }
+            if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
 
-                echo '</ul></nav>';
-                echo '<a href="logout.php" class="btn-logout" style="text-align: center;">Cerrar Sesión</a>';
+                echo '<li class="nav-item"><a class="nav-link" href="producto_categoria.php">Productos</a></li>';
+                echo '<li class="nav-item"><a class="nav-link" href="reportes.php">Reportes</a></li>';
+                echo '<li class="nav-item"><a class="nav-link" href="ver_solicitudes.php">Ver Solicitudes</a></li>';
+                echo '<li class="nav-item"><a class="nav-link" href="escanear.php">Buscar</a></li>';
+            }
+
+            //Opciones para todos los usuarios
+            echo '<li class="nav-item"><a class="nav-link" href="categorias.php">Categorías</a></li>';
+
+            if (isset($_SESSION['role']) && $_SESSION['role'] === 'user') {
+                echo '<li class="nav-item"><a class="nav-link" href="solicitudes.php">Solicitudes</a></li>';
+            }
+
+            echo '</ul></nav>';
+            echo '<a href="logout.php" class="btn-logout" style="text-align: center;">Cerrar Sesión</a>';
         }
         ?>
     </div>
     <br>
-    <div class="container main-content">
+    <!--<div class="container main-content">-->
         <!-- El contenido de la página se insertará aquí -->
+    

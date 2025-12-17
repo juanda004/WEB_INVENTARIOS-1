@@ -3,7 +3,6 @@
 // Este script permite editar un producto existente en cualquier tabla de categoría o subcategoría.
 require_once 'includes/db.php';
 require_once 'includes/header.php';
-session_start();
 
 $mensaje = '';
 $producto = null;
@@ -200,6 +199,5 @@ if (isset($_GET['id']) && isset($_GET['categoria'])) {
             <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($tabla_seleccionada); ?>" class="btn btn-dark">Cancelar</a>
         </form>
     <?php endif; ?>
+    <?php require_once 'includes/footer.php'; ?>
 </div>
-
-<?php require_once 'includes/footer.php'; ?>

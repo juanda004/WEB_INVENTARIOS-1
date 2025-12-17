@@ -45,11 +45,12 @@ function registrarMovimiento(PDO $pdo, $codigo, $nombre, $categoria, $cantidad, 
         ':user_id' => $user_id,
         ':comentarios' => $comentarios
     ]);
-};
+}
+;
 
 /** 
  * Obtiene todos los nombres de tabla de inventario desde la tabla 'categorias'.
- */ 
+ */
 function obtenerTodasLasTablas(PDO $pdo): array
 {
     try {
@@ -70,7 +71,8 @@ function obtenerTodasLasTablas(PDO $pdo): array
  * @param int $user_id ID del usuario que realiza la acción.
  * @throws Exception Si hay un error de stock, producto no encontrado o error SQL.
  */
-function gestionarInventario(PDO $pdo, array $productos, string $operacion, int $solicitud_id, int $user_id) {
+function gestionarInventario(PDO $pdo, array $productos, string $operacion, int $solicitud_id, int $user_id)
+{
     $tablas = obtenerTodasLasTablas($pdo);
     $tipo_movimiento = ($operacion === '-') ? 'ENTREGA_SOLICITUD' : 'DEVOLUCIÓN';
 
@@ -84,13 +86,15 @@ function gestionarInventario(PDO $pdo, array $productos, string $operacion, int 
         $nombre = $producto['nombre'] ?? 'Desconocido';
 
 
-        if (empty($codigo) || $cantidad <= 0) continue;
+        if (empty($codigo) || $cantidad <= 0)
+            continue;
 
         $encontrado_y_actualizado = false;
 
         foreach ($tablas as $tabla) {
             // Validación de seguridad de nombre de tabla
-            if (!preg_match('/^[a-zA-Z0-9_]+$/i', $tabla)) continue;
+            if (!preg_match('/^[a-zA-Z0-9_]+$/i', $tabla))
+                continue;
 
             // 1. Intentar actualizar el stock en la tabla actual
             $sql_update = "UPDATE `$tabla` 
@@ -117,8 +121,8 @@ function gestionarInventario(PDO $pdo, array $productos, string $operacion, int 
 
                 // REGISTRO DE MOVIMIENTO
                 $cantidad_movimiento = ($operacion === '-') ? (-1 * $cantidad) : $cantidad; // Negativo para salida, Postivo para entrada
-                registrarMovimiento ($pdo, $codigo, $nombre, $tabla, $cantidad_movimiento, $tipo_movimiento, $solicitud_id, $user_id, "Movimiento desde Solicitud #{$solicitud_id}");
-                
+                registrarMovimiento($pdo, $codigo, $nombre, $tabla, $cantidad_movimiento, $tipo_movimiento, $solicitud_id, $user_id, "Movimiento desde Solicitud #{$solicitud_id}");
+
                 break; // Producto encontrado y actualizado, pasar al siguiente producto solicitado
             }
         }
@@ -156,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion_solicitud'])) {
         $solicitud_data = $stmt_data->fetch(PDO::FETCH_ASSOC);
 
         if (!$solicitud_data) {
-             throw new Exception("Solicitud no encontrada.");
+            throw new Exception("Solicitud no encontrada.");
         }
 
         $estado_actual = $solicitud_data['estado'];
@@ -171,16 +175,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion_solicitud'])) {
             $fecha_update = ", fecha_entrega = NOW()";
             $mensaje_accion = "descontado";
 
-        // Caso B: Transición de ENTREGADO a otro estado (Reversión/Devolución)
+            // Caso B: Transición de ENTREGADO a otro estado (Reversión/Devolución)
         } elseif ($nuevo_estado !== 'entregado' && $estado_actual === 'entregado') {
             gestionarInventario($pdo, $productos, '+', $solicitud_id, $user_id); // Revertir unidades y registrar
             $fecha_update = ", fecha_entrega = NULL";
             $mensaje_accion = "devuelto";
 
-        // Caso C: Otro cambio de estado o el estado se mantiene
+            // Caso C: Otro cambio de estado o el estado se mantiene
         } elseif ($nuevo_estado === 'cancelado' && $estado_actual !== 'cancelado') {
-             // Si se cancela una solicitud que NO estaba entregada, no hace falta revertir stock, solo actualizar estado.
-             $mensaje_accion = "estado cambiado a CANCELADO";
+            // Si se cancela una solicitud que NO estaba entregada, no hace falta revertir stock, solo actualizar estado.
+            $mensaje_accion = "estado cambiado a CANCELADO";
         } else {
             // No se hace nada con el inventario
         }
@@ -211,12 +215,13 @@ try {
 }
 ?>
 
-<div class="container mt-5">
+<!--<div class="container mt-5">-->
+<div class="container main-content">
     <h2>Gestión de Solicitudes de Productos</h2>
     <?php echo $mensaje; ?>
 
     <?php if (!empty($solicitudes)): ?>
-        <table class="table table-bordered table-striped">
+        <table class="table table-responsive table-bordered table-striped">
             <thead class="table-dark">
                 <tr>
                     <th>N° Orden</th>
@@ -300,6 +305,5 @@ try {
     <?php else: ?>
         <p>No hay solicitudes pendientes.</p>
     <?php endif; ?>
+    <?php require_once 'includes/footer.php'; ?>
 </div>
-
-<?php require_once 'includes/footer.php'; ?>

@@ -21,7 +21,7 @@ if ($user_role !== 'admin') {
 
 // 1. Configuración de Paginación
 $limite_por_pagina = 20;
-$pagina_actual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
+$pagina_actual = isset($_GET['p']) ? (int) $_GET['p'] : 1;
 $offset = ($pagina_actual - 1) * $limite_por_pagina;
 
 // 2. Recolección de Filtros
@@ -100,9 +100,9 @@ try {
             $saldo_por_producto[$key] = 0;
         }
 
-        $mov['saldo_anterior'] = $saldo_por_producto[$key]; 
-        $saldo_por_producto[$key] += $mov['cantidad_afectada']; 
-        $mov['saldo_restante'] = $saldo_por_producto[$key]; 
+        $mov['saldo_anterior'] = $saldo_por_producto[$key];
+        $saldo_por_producto[$key] += $mov['cantidad_afectada'];
+        $mov['saldo_restante'] = $saldo_por_producto[$key];
 
         $movimientos_con_saldo[] = $mov;
     }
@@ -117,28 +117,28 @@ try {
     foreach ($movimientos_con_saldo as $mov) {
         $categoria = $mov['categoria'];
         $codigo = $mov['codigo_producto'];
-        
+
         // Evitar duplicados de código dentro de la misma tabla
         $productos_por_tabla[$categoria][$codigo] = $codigo;
     }
 
     // 6. 2. Ejecutar consultas por lotes (una por cada tabla única)
     $stock_actual_map = []; // Mapa final: 'codigo|categoria' => CANT
-    
+
     foreach ($productos_por_tabla as $categoria => $codigos) {
         // Validación de seguridad para el nombre de la tabla
         if (!preg_match('/^[a-zA-Z0-9_]+$/i', $categoria)) {
-            continue; 
+            continue;
         }
 
         // Generar una lista de marcadores de posición para la cláusula IN (ej. ?, ?, ?)
         $placeholders = implode(',', array_fill(0, count($codigos), '?'));
-        
+
         try {
             // Consultar la cantidad (CANT) y el CODIGO para todos los productos de esta tabla
             $sql_stock = "SELECT CODIGO, CANT FROM `$categoria` WHERE CODIGO IN ($placeholders)";
             $stmt_stock = $pdo->prepare($sql_stock);
-            
+
             // Ejecutar con el array de códigos
             $stmt_stock->execute(array_values($codigos));
             $stocks_en_tabla = $stmt_stock->fetchAll(PDO::FETCH_KEY_PAIR); // Obtiene [CODIGO => CANT]
@@ -148,7 +148,7 @@ try {
                 $key = $codigo . '|' . $categoria;
                 if (isset($stocks_en_tabla[$codigo])) {
                     // Producto encontrado en la tabla
-                    $stock_actual_map[$key] = (int)$stocks_en_tabla[$codigo];
+                    $stock_actual_map[$key] = (int) $stocks_en_tabla[$codigo];
                 } else {
                     // Producto no encontrado (posiblemente eliminado de la tabla original)
                     $stock_actual_map[$key] = 'N/D (Eliminado)';
@@ -209,7 +209,8 @@ $tipos_movimiento = [
 ];
 
 // Función para generar la URL de paginación (manteniendo filtros)
-function generarUrlPaginacion($pagina) {
+function generarUrlPaginacion($pagina)
+{
     $params = $_GET;
     $params['p'] = $pagina;
     unset($params['mensaje']);
@@ -217,6 +218,7 @@ function generarUrlPaginacion($pagina) {
 }
 
 ?>
+<div class="container main-content">
     <h2>Reporte de Movimientos de Inventario</h2>
     <?php echo $mensaje; ?>
 
@@ -224,23 +226,25 @@ function generarUrlPaginacion($pagina) {
         <div class="row">
             <div class="col-md-3 form-group">
                 <label for="fecha_inicio">Fecha Inicio:</label>
-                <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" value="<?php echo htmlspecialchars($filtro_fecha_inicio); ?>">
+                <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio"
+                    value="<?php echo htmlspecialchars($filtro_fecha_inicio); ?>">
             </div>
             <div class="col-md-3 form-group">
                 <label for="fecha_fin">Fecha Fin:</label>
-                <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" value="<?php echo htmlspecialchars($filtro_fecha_fin); ?>">
+                <input type="date" class="form-control" name="fecha_fin" id="fecha_fin"
+                    value="<?php echo htmlspecialchars($filtro_fecha_fin); ?>">
             </div>
             <div class="col-md-3 form-group">
                 <label for="codigo">Cód. Producto:</label>
-                <input type="text" class="form-control" name="codigo" id="codigo" value="<?php echo htmlspecialchars($filtro_codigo); ?>">
+                <input type="text" class="form-control" name="codigo" id="codigo"
+                    value="<?php echo htmlspecialchars($filtro_codigo); ?>">
             </div>
             <div class="col-md-3 form-group">
                 <label for="categoria">Categoría:</label>
                 <select class="form-control" name="categoria" id="categoria">
                     <option value="">-- Todas --</option>
                     <?php foreach ($categorias as $cat): ?>
-                        <option value="<?php echo htmlspecialchars($cat); ?>"
-                                <?php echo ($filtro_categoria === $cat) ? 'selected' : ''; ?>>
+                        <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo ($filtro_categoria === $cat) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars(ucfirst($cat)); ?>
                         </option>
                     <?php endforeach; ?>
@@ -253,8 +257,7 @@ function generarUrlPaginacion($pagina) {
                 <select class="form-control" name="tipo" id="tipo">
                     <option value="">-- Todos --</option>
                     <?php foreach ($tipos_movimiento as $tipo): ?>
-                        <option value="<?php echo htmlspecialchars($tipo); ?>"
-                                <?php echo ($filtro_tipo === $tipo) ? 'selected' : ''; ?>>
+                        <option value="<?php echo htmlspecialchars($tipo); ?>" <?php echo ($filtro_tipo === $tipo) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars(str_replace('_', ' ', $tipo)); ?>
                         </option>
                     <?php endforeach; ?>
@@ -268,7 +271,8 @@ function generarUrlPaginacion($pagina) {
     </form>
 
 
-    <p class="text-muted">Mostrando <?php echo $total_registros; ?> movimientos totales. (Página <?php echo $pagina_actual; ?> de <?php echo $total_paginas; ?>)</p>
+    <p class="text-muted">Mostrando <?php echo $total_registros; ?> movimientos totales. (Página
+        <?php echo $pagina_actual; ?> de <?php echo $total_paginas; ?>)</p>
 
     <?php if (!empty($movimientos)): ?>
         <div class="table-responsive">
@@ -280,10 +284,10 @@ function generarUrlPaginacion($pagina) {
                         <th>COD. PRODUCTO</th>
                         <th>PRODUCTO</th>
                         <th>CATEGORIA</th>
-                        <th>CANTIDAD</th> 
+                        <th>CANTIDAD</th>
                         <th>#SOLICITUD</th>
                         <th>COMENTARIOS</th>
-                        <th>STOCK ACTUAL</th> 
+                        <th>STOCK ACTUAL</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -297,12 +301,12 @@ function generarUrlPaginacion($pagina) {
                             <td><?php echo htmlspecialchars($mov['nombre_producto']); ?></td>
                             <td style="text-align: center;"><?php echo htmlspecialchars(ucfirst($mov['categoria'])); ?></td>
                             <td style="text-align: center;">
-                                <strong class="text-primary"><?php echo htmlspecialchars($mov['saldo_restante']); ?></strong> 
+                                <strong class="text-primary"><?php echo htmlspecialchars($mov['saldo_restante']); ?></strong>
                             </td>
                             <td style="text-align: center;"><?php echo htmlspecialchars($mov['referencia_id'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($mov['comentarios'] ?? ''); ?></td>
                             <td style="text-align: center;">
-                                <span> <?php echo htmlspecialchars($mov['stock_actual_bd']); ?></span> 
+                                <span> <?php echo htmlspecialchars($mov['stock_actual_bd']); ?></span>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -336,4 +340,4 @@ function generarUrlPaginacion($pagina) {
         <p class="alert alert-info">No se encontraron movimientos de inventario con los filtros seleccionados.</p>
     <?php endif; ?>
 
-<?php require_once 'includes/footer.php'; ?>
+    <?php require_once 'includes/footer.php'; ?>

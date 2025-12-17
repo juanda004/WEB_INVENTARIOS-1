@@ -43,16 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_password'])) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar Contraseña</title>
-</head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
+<>
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-5">
             <div class="card">
                 <div class="card-header text-center">
                     <h2>Recuperar Contraseña</h2>
@@ -71,9 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_password'])) {
                         </div>
                         <div class="form-group">
                             <label for="confirm_password">Confirmar Contraseña:</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                required>
                         </div>
-                        <button type="submit" name="reset_password" class="btn btn-outline-success btn-block">Restablecer Contraseña</button>
+                        <button type="submit" name="reset_password"
+                            class="btn btn-outline-success btn-block">Restablecer Contraseña</button>
                     </form>
                 </div>
                 <div class="card-footer text-center">
@@ -82,6 +77,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_password'])) {
             </div>
         </div>
     </div>
-    
-</body>
-</html>

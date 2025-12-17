@@ -103,6 +103,7 @@ try {
 ?>
 
 <br>
+<div class="container main-content">
 <h2 style="text-align: -webkit-center;">Gestión de Categorías</h2><br>
 <?php echo $mensaje; ?>
 
@@ -193,5 +194,5 @@ try {
     <p>No hay categorías disponibles.</p>
 <?php endif; ?>
 <hr>
-
 <?php include 'includes/footer.php'; ?>
+</div>

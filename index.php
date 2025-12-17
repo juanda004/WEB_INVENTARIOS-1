@@ -94,46 +94,39 @@ try {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgcW54AkpoPfFPQacImJCIwpJEctdfJh4t0g&s"
-        type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NCS INVENTARIO</title>
-</head>
-
 <body>
-    <h2>Resumen del Inventario</h2><br>
-    <?php echo $mensaje; ?>
-    <div class="dashborad-stats">
-        <?php if (!empty($estadisticas_categorias)): ?>
-            <ul class="list-group">
-                <?php foreach ($estadisticas_categorias as $categoria_nombre => $datos): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="ver_productos.php?categoria=<?php echo urlencode($categoria_nombre); ?>"><p style="font-size: x-large; margin: 0;">
-                            <!-- Nombre de la Categoría -->
-                            <strong><?php echo htmlspecialchars(ucfirst($categoria_nombre)); ?></strong>
-                        </p></a>
-                        <div class="d-flex gap-3">
-                            <!-- Conteo de Subcategorías (Ahora de la tabla logica) -->
-                            <span class="badge bg-info rounded-pill p-2" title="Total de Subcategorías">
-                                Subcategorías: <?php echo htmlspecialchars($datos['subcategorias']); ?>
-                            </span>
-                            <!-- Conteo de Productos -->
-                            <span class="badge bg-primary rounded-pill p-2"
-                                title="Total de Productos (Incluyendo Subcategorías)">
-                                Productos: <?php echo htmlspecialchars($datos['productos']); ?>
-                            </span>
-                        </div>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else: ?>
-            <p>No hay categorías o productos disponibles en el inventario.</p>
-        <?php endif; ?>
+    <div class="container main-content">
+        <h2>Resumen del Inventario</h2><br>
+        <?php echo $mensaje; ?>
+        <div class="dashborad-stats">
+            <?php if (!empty($estadisticas_categorias)): ?>
+                <ul class="list-group">
+                    <?php foreach ($estadisticas_categorias as $categoria_nombre => $datos): ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="ver_productos.php?categoria=<?php echo urlencode($categoria_nombre); ?>">
+                                <p style="font-size: x-large; margin: 0;">
+                                    <!-- Nombre de la Categoría -->
+                                    <strong><?php echo htmlspecialchars(ucfirst($categoria_nombre)); ?></strong>
+                                </p>
+                            </a>
+                            <div class="d-flex gap-3">
+                                <!-- Conteo de Subcategorías (Ahora de la tabla logica) -->
+                                <span class="badge bg-info rounded-pill p-2" title="Total de Subcategorías">
+                                    Subcategorías: <?php echo htmlspecialchars($datos['subcategorias']); ?>
+                                </span>
+                                <!-- Conteo de Productos -->
+                                <span class="badge bg-primary rounded-pill p-2"
+                                    title="Total de Productos (Incluyendo Subcategorías)">
+                                    Productos: <?php echo htmlspecialchars($datos['productos']); ?>
+                                </span>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <p>No hay categorías o productos disponibles en el inventario.</p>
+            <?php endif; ?>
+        </div>
+        <hr>
+        <?php include 'includes/footer.php'; ?>
     </div>
-    <hr>
-    <?php include 'includes/footer.php'; ?>
