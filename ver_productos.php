@@ -159,7 +159,7 @@ if (isset($_GET['mensaje'])) {
     <?php endif; ?>
 
     <?php if ($productos): ?>
-        <table class="table table-bordered table-striped">
+        <table class="table table-responsive table-bordered table-striped">
             <thead class="thead-dark">
                 <tr>
                     <th style="text-align: center;">CODIGO</th>

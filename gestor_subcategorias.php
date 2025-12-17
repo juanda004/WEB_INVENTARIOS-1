@@ -136,6 +136,7 @@ if ($categoria_id) {
 }
 ?>
 
+<div class="container main-content">
 <h2>Gestión de Subcategorías para: "<?php echo htmlspecialchars(ucfirst($categoria_nombre)); ?>"</h2>
 <?php echo $mensaje; ?>
 

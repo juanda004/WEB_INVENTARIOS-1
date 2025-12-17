@@ -48,33 +48,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     }
 }
 ?>
-<!--<div class="container main-content">-->
-<div class="row justify-content-center">
-    <div class="col-md-6 mt-5">
-        <div class="card">
-            <div class="card-header text-center">
-                <h2>Iniciar Sesión</h2>
+<div class="container main-content">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-5">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>Iniciar Sesión</h2>
+                </div>
+                <div class="card-body">
+                    <?php echo $mensaje; ?>
+                    <form action="login.php" method="POST">
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico:</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" name="login" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p>¿No tienes una cuenta? <a href="register.php">Regístrate aquí</a></p>
+                    <p><a href="password_reset.php">¿Olvidaste tu contraseña?</a></p>
+                </div>
+                <?php require_once 'includes/footer.php'; ?>
             </div>
-            <div class="card-body">
-                <?php echo $mensaje; ?>
-                <form action="login.php" method="POST">
-                    <div class="form-group">
-                        <label for="email">Correo Electrónico:</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Contraseña:</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" name="login" class="btn btn-primary btn-block">Iniciar Sesión</button>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                <p>¿No tienes una cuenta? <a href="register.php">Regístrate aquí</a></p>
-                <p><a href="password_reset.php">¿Olvidaste tu contraseña?</a></p>
-            </div>
-            <?php require_once 'includes/footer.php'; ?>
         </div>
     </div>
-</div>
-<br>
+    <br>

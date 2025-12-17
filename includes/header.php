@@ -29,6 +29,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             background-position: center;
             background-attachment: fixed;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
         .container {
