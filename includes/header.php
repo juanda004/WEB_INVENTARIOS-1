@@ -22,7 +22,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #000000ff;
+            color: rgba(0, 0, 0, 0.8);
             padding-top: 20px;
             background-image: url("https://lh3.googleusercontent.com/p/AF1QipPdNg6Gxx_ME31mCbA8JyoMMLrlZ3qSO6PTVRFA=s1360-w1360-h1020-rw");
             background-size: cover;
