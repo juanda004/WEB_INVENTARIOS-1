@@ -1,116 +1,136 @@
 <?php
 // escanear.php
-// Permite buscar un producto por su código de barras a través de todas las tablas de categorías.
-include 'includes/db.php'; // Archivo de conexión a la base de datos
-include 'includes/header.php'; // Cabecera HTML
+// Permite buscar un producto por su código de barras en todas las tablas de categorías y subcategorías.
+
+session_start();
+include 'includes/db.php';
 
 $mensaje = '';
 $producto_encontrado = null;
 $categoria_del_producto = '';
 
-// --- Lógica para obtener todas las categorías dinámicamente ---
-$categorias = [];
+// --- 1. OBTENER TODAS LAS TABLAS DINÁMICAMENTE ---
+$tablas_a_buscar = [];
 try {
-    $stmt = $pdo->query("SELECT nombre_categoria FROM categorias ORDER BY nombre_categoria");
-    $categorias = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // Obtener nombres de tablas de categorías principales
+    $stmt_cat = $pdo->query("SELECT nombre_categoria FROM categorias ORDER BY nombre_categoria");
+    while ($row = $stmt_cat->fetch(PDO::FETCH_COLUMN)) {
+        $tablas_a_buscar[] = $row;
+    }
+
+    // Obtener nombres de tablas de subcategorías
+    $stmt_sub = $pdo->query("SELECT nombre_tabla FROM subcategorias_logicas ORDER BY nombre_tabla");
+    while ($row = $stmt_sub->fetch(PDO::FETCH_COLUMN)) {
+        $tablas_a_buscar[] = $row;
+    }
+
+    // Eliminar duplicados y valores vacíos para mayor seguridad
+    $tablas_a_buscar = array_unique(array_filter($tablas_a_buscar));
+
 } catch (PDOException $e) {
-    $mensaje = "<p class='btn-danger'>Error al cargar las categorías: " . $e->getMessage() . "</p>";
+    $mensaje = "<p class='alert alert-danger'>Error al cargar el mapa de categorías: " . $e->getMessage() . "</p>";
 }
 
-// --- Lógica de búsqueda al enviar el formulario ---
+// --- 2. LÓGICA DE BÚSQUEDA ---
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['codigo_busqueda'])) {
     $codigo_busqueda = trim($_POST['codigo_busqueda']);
 
     if (empty($codigo_busqueda)) {
-        $mensaje = "<p class='btn-warning'>Por favor, ingrese un código de barras para buscar.</p>";
+        $mensaje = "<p class='alert alert-warning'>Por favor, ingrese un código de barras.</p>";
     } else {
-        // Asume que el código de barras puede tener o no los asteriscos iniciales/finales.
-        // El trigger lo guarda con asteriscos, así que buscamos la versión con asteriscos.
+        // Preparar el código con asteriscos (formato del sistema)
         $codigo_con_asteriscos = "*" . str_replace(['*'], '', $codigo_busqueda) . "*";
 
-        // Iterar sobre cada categoría (tabla) para buscar el producto
-        foreach ($categorias as $cat) {
-            // Asegurarse de que el nombre de la tabla sea seguro para evitar inyección SQL
-            if (!preg_match('/^[a-z0-9_]+$/i', $cat)) {
-                continue; // Saltar categorías con nombres no válidos
-            }
+        // Realizar la búsqueda en la lista unificada de tablas
+        foreach ($tablas_a_buscar as $tabla) {
+            if (!preg_match('/^[a-z0-9_]+$/i', $tabla)) continue;
 
             try {
-                // Consulta preparada para buscar el CODIGO_BARRAS en la tabla actual
-                $sql = "SELECT CODIGO, PRODUCTO, CANT, UNIDAD FROM `$cat` WHERE CODIGO_BARRAS = ?";
+                $sql = "SELECT CODIGO, PRODUCTO, CANT, UNIDAD FROM `$tabla` WHERE CODIGO_BARRAS = ?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$codigo_con_asteriscos]);
-                $producto_encontrado = $stmt->fetch(PDO::FETCH_ASSOC);
+                $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                // Si se encuentra el producto, guardar la categoría y detener la búsqueda
-                if ($producto_encontrado) {
-                    $categoria_del_producto = $cat;
-                    break;
+                if ($resultado) {
+                    $producto_encontrado = $resultado;
+                    $categoria_del_producto = $tabla;
+                    break; // DETENER la búsqueda en cuanto se encuentre el producto
                 }
             } catch (PDOException $e) {
-                // Puedes registrar un error aquí si una tabla no existe, pero la búsqueda debe continuar.
-                // $mensaje .= "<p class='text-muted'>Error al buscar en $cat: " . $e->getMessage() . "</p>";
+                // Si una tabla no existe, simplemente saltamos a la siguiente
                 continue;
             }
         }
 
         if (!$producto_encontrado) {
-            $mensaje = "<p class='btn-danger'>Producto con código de barras '$codigo_busqueda' no encontrado en ninguna categoría.</p>";
+            $mensaje = "<p class='alert alert-danger'>Producto con código '$codigo_busqueda' no encontrado en ninguna categoría.</p>";
         }
     }
 }
+
+// --- 3. INICIO DE VISTA (HTML) ---
+include 'includes/header.php'; 
 ?>
 
-<body>
-    <div class="container main-content">
-        <h2>Busqueda Código de Barras</h2><br>
+<div class="container main-content">
+    <h2><i class="fas fa-barcode"></i> Búsqueda por Código de Barras</h2>
+    <p class="text-muted">Escanee el código para localizar el producto en todo el inventario.</p>
+    <hr>
 
-        <!-- Formulario de búsqueda -->
-        <form action="escanear.php" method="POST">
-            <label for="codigo_busqueda" style="font-size: x-large;">Código de Barras:</label>
-            <!-- El autofocus es útil para simular el escaneo directo con un lector de códigos -->
-            <input type="text" id="codigo_busqueda" name="codigo_busqueda" style="margin-left: 10px;"
-                value="<?php echo isset($codigo_busqueda) ? htmlspecialchars($codigo_busqueda) : ''; ?>" required
-                autofocus>
-            <button type="submit" class="btn btn-primary" style="margin-left: 10px;">Buscar Producto</button>
-        </form>
+    <form action="escanear.php" method="POST" class="form-inline mb-4">
+        <div class="input-group" style="width: 100%; max-width: 500px;">
+            <input type="text" id="codigo_busqueda" name="codigo_busqueda" 
+                   class="form-control form-control-lg" 
+                   placeholder="Escanear ahora..." autofocus 
+                   value="<?php echo isset($codigo_busqueda) ? htmlspecialchars($codigo_busqueda) : ''; ?>" required>
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-primary btn-lg">Buscar</button>
+            </div>
+        </div>
+    </form>
 
-        <hr>
-        <?php echo $mensaje; ?>
+    <?php echo $mensaje; ?>
 
-        <!-- Muestra los resultados si se encuentra un producto -->
-        <?php if ($producto_encontrado): ?>
-            <div class="card-resultado">
-                <h3>Producto Encontrado</h3>
-                <table border="1" style="width:100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th>CATEGORIA</th>
+    <?php if ($producto_encontrado): ?>
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Producto Localizado</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr class="text-center">
+                            <th>CATEGORÍA</th>
                             <th>CÓDIGO INTERNO</th>
-                            <th>PRODUCTO</th>
-                            <th>CANTIDAD</th>
+                            <th>DESCRIPCIÓN</th>
+                            <th>EXISTENCIA</th>
                             <th>UNIDAD</th>
+                            <th>ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="text-align: center;">
-                                <?php echo htmlspecialchars(ucfirst($categoria_del_producto)); ?></td>
-                            <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['CODIGO']); ?>
+                            <td class="text-center">
+                                <span class="badge badge-info p-2"><?php echo htmlspecialchars(ucfirst($categoria_del_producto)); ?></span>
                             </td>
-                            <td style="text-align: center;">
-                                <?php echo htmlspecialchars($producto_encontrado['PRODUCTO']); ?></td>
-                            <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['CANT']); ?>
-                            </td>
-                            <td style="text-align: center;"><?php echo htmlspecialchars($producto_encontrado['UNIDAD']); ?>
+                            <td class="text-center"><?php echo htmlspecialchars($producto_encontrado['CODIGO']); ?></td>
+                            <td><?php echo htmlspecialchars($producto_encontrado['PRODUCTO']); ?></td>
+                            <td class="text-center"><strong><?php echo htmlspecialchars($producto_encontrado['CANT']); ?></strong></td>
+                            <td class="text-center"><?php echo htmlspecialchars($producto_encontrado['UNIDAD']); ?></td>
+                            <td class="text-center">
+                                <a href="editar_producto.php?categoria=<?php echo urlencode($categoria_del_producto); ?>&id=<?php echo urlencode($producto_encontrado['CODIGO']); ?>" 
+                                   class="btn btn-sm btn-warning">Editar</a>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-        <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
-</body>
+    <div class="mt-4">
+        <a class="btn btn-dark" href="categorias.php">Volver a Categorías</a>
+    </div>
+</div>
 
-</html>
 <?php include 'includes/footer.php'; ?>

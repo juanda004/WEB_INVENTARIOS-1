@@ -101,7 +101,6 @@ try {
 }
 
 ?>
-
 <br>
 <div class="container main-content">
 <h2 style="text-align: -webkit-center;">Gestión de Categorías</h2><br>
@@ -150,7 +149,7 @@ try {
                 <?php endforeach; ?>
             </select>
             <!-- Botón actualizado a CSV -->
-            <button type="submit" class="btn btn-success">Descargar Inventario (CSV)</button>
+            <button type="submit" class="btn btn-success">Descargar Inventario</button>
         </form>
     <?php endif; ?>
     <hr>

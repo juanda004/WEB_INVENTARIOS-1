@@ -48,7 +48,6 @@ function eliminarTablaSubcategoria(PDO $pdo, $nombre_tabla)
 }
 
 // --- Cargar Categoría Principal ---
-
 if ($categoria_id) {
     try {
         $stmt_cat = $pdo->prepare("SELECT nombre_categoria FROM categorias WHERE id = ?");
@@ -66,7 +65,6 @@ if ($categoria_id) {
         $categoria_id = null;
     }
 }
-
 
 // --- Procesamiento de formularios (Solo para Admin) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_role === 'admin' && $categoria_id) {

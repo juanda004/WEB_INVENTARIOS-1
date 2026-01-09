@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <p>¿Ya tienes una cuenta? <a href="login    .php">Inicia sesión</a></p>
+                    <p>¿Ya tienes una cuenta? <a href="login.php">Inicia sesión</a></p>
                 </div>
                 <?php require_once 'includes/footer.php'; ?>
             </div>
