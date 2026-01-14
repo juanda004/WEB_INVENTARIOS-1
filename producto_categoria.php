@@ -40,11 +40,11 @@ try {
                     <table class="table table-bordered table-striped">
                         <thead class="thead-dark">
                             <tr>
-                                <th>CÓDIGO</th>
-                                <th>CÓDIGO DE BARRAS</th>
-                                <th>DESCRIPCIÓN</th>
-                                <th>CANTIDAD</th>
-                                <th>ACCIONES</th>
+                                <th style="width: fit-content; text-align: center;">CÓDIGO</th>
+                                <th style="width: fit-content; text-align: center;">CÓDIGO DE BARRAS</th>
+                                <th style="width: 40%; text-align: center;">DESCRIPCIÓN</th>
+                                <th style="width: fit-content; text-align: center;">CANTIDAD</th>
+                                <th style="width: fit-content; text-align: center;">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,7 +54,7 @@ try {
                                     <td style="text-align: center;"><?php echo htmlspecialchars($producto['CODIGO_BARRAS']); ?></td>
                                     <td><?php echo htmlspecialchars($producto['PRODUCTO']); ?></td>
                                     <td style="text-align: center;"><?php echo htmlspecialchars($producto['CANT']); ?></td>
-                                    <td>
+                                    <td style="text-align: -webkit-center;">
                                         <a href="editar_producto.php?categoria=<?php echo htmlspecialchars($categoria_nombre); ?>&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>"
                                             class="btn btn-warning">Editar</a>
                                         <a href="ver_productos.php?categoria=<?php echo htmlspecialchars($categoria_nombre); ?>&action=eliminar&id=<?php echo htmlspecialchars($producto['CODIGO']); ?>"
